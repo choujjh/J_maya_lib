@@ -9,7 +9,7 @@ importlib.reload(components)
 
 class renamers:
     def __init__(self):
-        self.name = 'general_renamer4'
+        self.name = 'general_renamer'
         if cmds.window(self.name, exists=True):
             cmds.deleteUI(self.name)
         cmds.window(self.name, title=self.name, w = 200, h = 400)
