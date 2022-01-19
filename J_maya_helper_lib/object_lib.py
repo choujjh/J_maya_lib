@@ -122,7 +122,6 @@ def get_connections(objects):
 
 #connect with a new naming alias
 def connect_new_names(connections, pre='', post='', custom=('', '')):
-    connections = get_connections(connections)
     for con in connections:
         driver = helpers.string_manip(con[0], pre, post, custom)
         print(driver)
