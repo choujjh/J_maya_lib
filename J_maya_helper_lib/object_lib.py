@@ -122,7 +122,6 @@ def get_connections(objects):
 
 #connect with a new naming alias
 def connect_new_names(objects, pre='', post='', custom=('', '')):
-    print(objects)
     connections = get_connections(objects)
     for con in connections:
         driver = helpers.string_manip(con[0], pre, post, custom)
@@ -172,5 +171,4 @@ def dupl_node_connections(objects, pre='', post='', custom=('', '')):
     objects = helpers.turn_to_list(objects)
 
     dupl_renamer(filter_node_types(objects, 'unitConversion'), pre, post, custom)
-    print(objects)
     connect_new_names(objects, pre, post, custom)
