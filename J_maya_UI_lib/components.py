@@ -21,9 +21,7 @@ class text_field:
         self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, tx_width)], p=parent)
         self.text = cmds.text(l = tx_label)
         self.tf = cmds.textField()
-        # self.on_update(tf_function)
 
-    #changing things on palette port
     def set_vis(self, visibility):
         cmds.text(self.text, e=True, visible=visibility)
         cmds.textField(self.tf, e=True, visible=visibility)
@@ -66,7 +64,11 @@ class select_text_field:
     def get_name(self):
         return self.layout
     def get_value(self):
-        return cmds.textField(self.tf, q=True, text=True).split(', ')
+        val = cmds.textField(self.tf, q=True, text=True)
+        if val == '':
+            return []
+        else:
+            return val.split(', ')
     
 class radio_collection:
     def __init__(self, parent, button_names, verticle=True, select_index=0):
@@ -131,3 +133,22 @@ class color_picker:
     def get_value(self):
         return cmds.palettePort(self.name, q=True, scc=True) + 1
     
+class check_box:
+    def __init__(self, parent, label):
+        self.cb = cmds.checkBox(label=label, p=parent)
+        
+    def set_vis(self, visibility):
+        cmds.checkBox(self.cb, e=True, visible=visibility)
+    def editable(self, edit):
+        cmds.checkBox(self.cb, e=True, ed=edit)
+    def on_update(self, on_function=None, off_function=None):
+        if on_function != None:
+            cmds.checkBox(self.cb, e=True, onCommand=on_function)
+        if off_function != None:
+            cmds.checkBox(self.cb, e=True, offCommand=off_function)
+
+    #getting information from class
+    def get_name(self):
+        return self.cb
+    def get_value(self):
+        return cmds.checkBox(self.cb, q=True, v=True)
