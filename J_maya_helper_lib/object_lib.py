@@ -125,9 +125,7 @@ def connect_new_names(objects, pre='', post='', custom=('', '')):
     connections = get_connections(objects)
     for con in connections:
         driver = helpers.string_manip(con[0], pre, post, custom)
-        print(driver)
         driven = helpers.string_manip(con[1], pre, post, custom)
-        print(driven)
         cmds.connectAttr(driver, driven, f=True)
 
 #duplicate and rename
