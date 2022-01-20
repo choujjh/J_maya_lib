@@ -17,5 +17,5 @@ class J_maya_lib_setup():
         print(self.script_dir)
         print(self.setup_path)
 
-# shutil.move(, )
+# TODO: install the shelf tools
 #cmds.quit()
