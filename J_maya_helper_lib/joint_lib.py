@@ -65,7 +65,7 @@ def setup_ik_chain(ik_start_jnt, ik_mid_jnt, ik_end_jnt, start_jnt):
     loc_pole_vec = cmds.spaceLocator(n = helpers.string_manip(ik_end_jnt, pre = 'anim', post = 'pullVec_locOffset'))[0]
     #matching transforms
     cmds.matchTransform(loc_start, ik_start_jnt)
-    cmds.matchTransform(loc_handle, handle)
+    cmds.matchTransform(loc_handle, ik_end_jnt)
     #attach everything
     cmds.pointConstraint(loc_start, ik_start_jnt)
     cmds.pointConstraint(loc_handle, handle)
@@ -73,6 +73,9 @@ def setup_ik_chain(ik_start_jnt, ik_mid_jnt, ik_end_jnt, start_jnt):
     cmds.parent([loc_start, loc_handle, ik_grp])
     #set where the pull vector will be
     #get the pull value
+    setup_pull_vec(ik_start_jnt, ik_mid_jnt, ik_end_jnt, handle, loc_pole_vec, ik_grp)
+    
+def setup_pull_vec(ik_start_jnt, ik_mid_jnt, ik_end_jnt, handle, loc_pole_vec, ik_grp):
     current_pole_vec = helpers.vector([cmds.getAttr('{}.poleVectorX'.format(handle)), cmds.getAttr('{}.poleVectorY'.format(handle)), cmds.getAttr('{}.poleVectorZ'.format(handle))])
     #create a group above and constrain it to the start
     temp_grp = object_lib.create_parent_grp(loc_pole_vec, post='temp')[0]
@@ -88,6 +91,7 @@ def setup_ik_chain(ik_start_jnt, ik_mid_jnt, ik_end_jnt, start_jnt):
     cmds.rotate(0, 0, 0, loc_pole_vec)
     #constraining locator to be more centered
     loc_pointC = cmds.pointConstraint(ik_mid_jnt, loc_pole_vec, skip=['y', 'z'])
+    cmds.setAttr('{}.translateY'.format(loc_pole_vec), cmds.getAttr('{}.translateY'.format(loc_pole_vec)) * 2)
     cmds.delete(loc_pointC)
     cmds.parent(loc_pole_vec, w=True)
     cmds.delete(temp_grp)
