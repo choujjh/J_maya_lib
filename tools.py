@@ -16,20 +16,25 @@ class tester:
         cl = cmds.columnLayout()
         self.options = ['rename', 'duplicate and rename', 'create offset group','connect with pattern', 'duplicate nodes']
         self.rc = components.radio_collection(cl, self.options)
-        self.sel = components.select_text_field(cl, 'selection', 100)
+        self.cb = components.check_box(cl, 'selection')
+        self.sel = components.select_text_field(cl, 'object(s)', 100)
+        self.cb.on_update(on_function=lambda x: self.sel.editable(False), off_function=lambda y: self.sel.editable(True))
         self.pre = components.text_field(cl, 'pre', 100)
         self.before = components.text_field(cl, 'replace', 100)
         self.after = components.text_field(cl, 'with', 100)
         self.post = components.text_field(cl, 'post', 100)
         #need to replace these buttons
-        cmds.button(label='execute', command=self.renamer_functions())
-        cmds.button(label='duplicate set', command=object_lib.nonunique_obj_set())
-
+        cmds.button(label='execute', command=lambda x: self.renamer_functions())
+        cmds.button(label='duplicate set', command=lambda x:object_lib.nonunique_obj_set())
 
 
         cmds.showWindow()
     def renamer_functions(self):
-        objects = self.sel.get_value()
+        objects = []
+        if not self.cb.get_value():
+            objects = self.sel.get_value()
+        else:
+            objects = cmds.ls(sl=True, long=True)
         pre = self.pre.get_value()[0]
         post=self.post.get_value()[0]
         custom = (self.before.get_value()[0], self.after.get_value()[0])

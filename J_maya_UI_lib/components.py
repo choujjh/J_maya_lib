@@ -52,7 +52,11 @@ class select_text_field:
     def get_name(self):
         return self.layout
     def get_value(self):
-        return cmds.textField(self.tf, q=True, text=True).split(', ')
+        val = cmds.textField(self.tf, q=True, text=True)
+        if val == '':
+            return []
+        else:
+            return val.split(', ')
     
 class radio_collection:
     def __init__(self, parent, button_names, columns=None, verticle=True, select_index=0):
@@ -114,3 +118,22 @@ class color_picker:
     def get_value(self):
         return cmds.palettePort(self.name, q=True, scc=True) + 1
     
+class check_box:
+    def __init__(self, parent, label):
+        self.cb = cmds.checkBox(label=label, p=parent)
+        
+    def set_vis(self, visibility):
+        cmds.checkBox(self.cb, e=True, visible=visibility)
+    def editable(self, edit):
+        cmds.checkBox(self.cb, e=True, ed=edit)
+    def on_update(self, on_function=None, off_function=None):
+        if on_function != None:
+            cmds.checkBox(self.cb, e=True, onCommand=on_function)
+        if off_function != None:
+            cmds.checkBox(self.cb, e=True, offCommand=off_function)
+
+    #getting information from class
+    def get_name(self):
+        return self.cb
+    def get_value(self):
+        return cmds.checkBox(self.cb, q=True, v=True)

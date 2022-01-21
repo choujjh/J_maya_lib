@@ -155,12 +155,11 @@ def get_connections(objects):
     return connections
 
 #connect with a new naming alias
-def connect_new_names(connections, pre='', post='', custom=('', '')):
+def connect_new_names(objects, pre='', post='', custom=('', '')):
+    connections = get_connections(objects)
     for con in connections:
         driver = helpers.string_manip(con[0], pre, post, custom)
-        print(driver)
         driven = helpers.string_manip(con[1], pre, post, custom)
-        print(driven)
         cmds.connectAttr(driver, driven, f=True)
 
 #duplicate and rename
@@ -205,7 +204,6 @@ def filter_node_types(objects, types, remove=True):
 #duplicates nodes and retains connections
 def dupl_node_connections(objects, pre='', post='', custom=('', '')):
     objects = helpers.turn_to_list(objects)
-    connections = get_connections(objects)
 
     dupl_renamer(filter_node_types(objects, 'unitConversion'), pre, post, custom)
-    connect_new_names(connections, pre, post, custom)
+    connect_new_names(objects, pre, post, custom)
