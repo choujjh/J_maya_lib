@@ -36,9 +36,11 @@ def object_renamer(objects, pre = '', post = '', custom = ('', ''), check_contai
 #creates a padding parent group
 def create_parent_grp(objects, pre='', post='_offset_grp01', custom=('','')):
     objects = helpers.turn_to_list(objects)
+    grps = []
     for obj in objects:
         grp_name = helpers.string_manip(obj, pre = pre, post = post, custom = custom)
         grp = cmds.createNode('transform', n = grp_name)
+        grps.append(grp)
         cmds.matchTransform(grp, obj)
         parents = cmds.listRelatives(obj, parent=True)
         if parents is not None:
@@ -47,6 +49,38 @@ def create_parent_grp(objects, pre='', post='_offset_grp01', custom=('','')):
         cmds.setAttr('{}.{}'.format(grp, 'scaleY'), 1)
         cmds.setAttr('{}.{}'.format(grp, 'scaleZ'), 1)
         cmds.parent(obj, grp)
+    return grps
+
+def create_fk_cntrl(objects, hierarchy=True, constraint = True, pre='anim', post='', custom=('','')):
+    objects = helpers.turn_to_list(objects)
+    if hierarchy:
+        objects = reverse_hierarchy(objects)
+    circle_curve_grps = []
+    for o in objects:
+        #initial object
+        circle_curve = cmds.circle(nr=(1, 0, 0), n=helpers.string_manip(o, pre=pre, post=post, custom=custom))[0]
+        cmds.delete(circle_curve, constructionHistory = True)
+        cmds.matchTransform(circle_curve, o)
+        off_grp = create_parent_grp(circle_curve)
+        circle_curve_grps.append(off_grp[0])
+        if constraint:
+            cmds.parentConstraint(circle_curve, o)
+        else:
+            cmds.pointConstraint(circle_curve, o)
+            cmds.connectAttr('{}.rotate'.format(circle_curve), '{}.rotate'.format(o))
+        
+        #get the hierarchy
+        shapes = cmds.listRelatives(o, s=True)
+        shapes = shapes if shapes != None else []
+        children = [x for x in cmds.listRelatives(o, c=True) if x not in shapes]
+        children = [x for x in children if cmds.nodeType(x) in ['joint', 'transform']]
+        if hierarchy and children is not None:
+            for s in children:
+                child_grp = create_fk_cntrl(s)
+                print(child_grp)
+                if len(child_grp) > 0:
+                    cmds.parent(child_grp[0], circle_curve)
+    return circle_curve_grps
 
 #gets the highest parent of selected nodes (all selected children won't be returned)
 def reverse_hierarchy(objects):
@@ -132,6 +166,7 @@ def connect_new_names(connections, pre='', post='', custom=('', '')):
 #duplicate and rename
 def dupl_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_match_string=True):
     objects = reverse_hierarchy(helpers.turn_to_list(objects))
+    dupl_objects = []
     for obj in objects:
         cmds.select(obj)
         cmds.duplicate()[0]
@@ -142,6 +177,7 @@ def dupl_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_
         cmds.rename(dupl, dupl_name)
         cmds.select(dupl_name)
         dupl_name = cmds.ls(sl=True, long=True)[0]
+        dupl_objects.append(dupl_name)
 
         #duplicate selection
         cmds.select(hi=True)
@@ -150,6 +186,7 @@ def dupl_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_
 
         #rename child objects
         object_renamer(dupl_child, pre, post, custom, check_contain_match_string)
+    return dupl_objects
 
 #removes all node types and returns it
 def filter_node_types(objects, types, remove=True):

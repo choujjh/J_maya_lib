@@ -7,9 +7,9 @@ import importlib
 importlib.reload(object_lib)
 importlib.reload(components)
 
-class renamers:
+class tester:
     def __init__(self):
-        self.name = 'general_renamer'
+        self.name = 'tester'
         if cmds.window(self.name, exists=True):
             cmds.deleteUI(self.name)
         cmds.window(self.name, title=self.name, w = 200, h = 400)
@@ -22,10 +22,8 @@ class renamers:
         self.after = components.text_field(cl, 'with', 100)
         self.post = components.text_field(cl, 'post', 100)
         #need to replace these buttons
-        cmds.button(label='execute', command=lambda x: self.renamer_functions())
-        cmds.button(label='duplicate set', command=lambda x:object_lib.nonunique_obj_set())
-
-
+        cmds.button(label='execute', command=self.renamer_functions())
+        cmds.button(label='duplicate set', command=object_lib.nonunique_obj_set())
 
 
 

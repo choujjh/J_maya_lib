@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import math
 
 def instance_exception(var_name, var, type):
     if not isinstance(var, type):
@@ -29,6 +30,42 @@ def string_manip(obj_name, pre = '', post = '', custom = ('', ''), check_contain
     obj_new_name = pre + obj_name + post
     return obj_new_name
 
+class vector:
+    def __init__(self, values):
+        self.values = values
+        self.length = len(values)
+    def __add__(self, obj):
+        if self.length != obj.length:
+            cmds.warning('length mismatch')
+        result = []
+        for s, o in zip(self.values, obj.values):
+            result.append(s+o)
+        return vector(result)
+    def __sub__(self, obj):
+        if self.length != obj.length:
+            cmds.warning('length mismatch')
+        result = []
+        for s, o in zip(self.values, obj.values):
+            result.append(s-o)
+        return vector(result)
+    def __mult__(self, obj):
+        if self.length != obj.length:
+            cmds.warning('length mismatch')
+        result = []
+        for s, o in zip(self.values, obj.values):
+            result.append(s*o)
+        return vector(result)
+    def dot(self, obj):
+        result = self.__mult__(obj)
+        sum = 0
+        for r in result.values:
+            sum = sum+r
+        return sum
+    def mag(self):
+        result = math.sqrt(self.dot(self))
+        return result
+    
+
 def turn_to_list(current_list):
     if not isinstance(current_list, list):
         return [current_list]
@@ -40,4 +77,8 @@ def convert_obj_names(objects, long=False):
         return [split_obj_name(x)[1] for x in objects]
     cmds.select(objects)
     return cmds.ls(sl=True, long=True)
+
+def select_obj_hierarchy(object):
+    cmds.select(object)
+    cmds.select(hi=True)
 

@@ -15,3 +15,7 @@ def resize_frame_layout(window, frame_layout, height, expand=False):
         frame_height = cmds.frameLayout(frame_layout, query=True, height=True)
         cmds.window(window, edit=True, height=window_height + height - 25)
         cmds.frameLayout(frame_layout, edit=True, height=frame_height + height - 25)
+def get_UI_parent_string(obj):
+    if hasattr(obj, "get_name"):
+        return obj.get_name()
+    return obj

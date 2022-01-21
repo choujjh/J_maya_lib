@@ -1,3 +1,5 @@
+from ntpath import join
+from tracemalloc import start
 import maya.cmds as cmds
 import importlib
 from J_maya_lib.J_maya_helper_lib import helpers
@@ -43,10 +45,77 @@ def create_ind_ik_handles(joints, pre = '', post = 'Handle', custom = ('', ''), 
             ik_handles.append(cmds.ikHandle(n = handle, sj = j, ee = joint_dict[j][0], sol = 'ikSCsolver')[0])
     return ik_handles
 
-def create_spline_ik_handles(joints, name='', type='individual', rot_plane_slv=True):
-    if type == 'individual':
-        print('TODO')
-    elif type == 'complete_heirarchy':
-        print('TODO')
-    elif type == 'chain':
-        print('TODO')
+class joint_info:
+    def __init__(self, color=5, radius=0.5):
+        self.color = color
+        self.radius = radius
+def set_radius(joints, radius):
+    joints = helpers.turn_to_list(joints)
+    for j in joints:
+        if cmds.nodeType(j) == 'joint':
+            cmds.setAttr('{}.radius'.format(j), radius)
+
+def setup_ik_chain(ik_start_jnt, ik_mid_jnt, ik_end_jnt, start_jnt):
+    #ik joint chain
+    handle, effector = cmds.ikHandle( n = helpers.string_manip(ik_start_jnt, post = 'handle'), sj = ik_start_jnt, ee = ik_end_jnt, sol = 'ikRPsolver')
+    effector = cmds.rename(effector, helpers.string_manip(ik_start_jnt, post = 'eff'))
+    #create offset grps
+    loc_start = cmds.spaceLocator(n = helpers.string_manip(ik_start_jnt, pre = 'anim', post = 'locOffset'))[0]
+    loc_handle = cmds.spaceLocator(n = helpers.string_manip(ik_end_jnt, pre = 'anim', post = 'handle_locOffset'))[0]
+    loc_pole_vec = cmds.spaceLocator(n = helpers.string_manip(ik_end_jnt, pre = 'anim', post = 'pullVec_locOffset'))[0]
+    #matching transforms
+    cmds.matchTransform(loc_start, ik_start_jnt)
+    cmds.matchTransform(loc_handle, handle)
+    #attach everything
+    cmds.pointConstraint(loc_start, ik_start_jnt)
+    cmds.pointConstraint(loc_handle, handle)
+    ik_grp = cmds.createNode('transform', n=helpers.string_manip(start_jnt, post = 'ik_grp01'))
+    cmds.parent([loc_start, loc_handle, ik_grp])
+    #set where the pull vector will be
+    #get the pull value
+    current_pole_vec = helpers.vector([cmds.getAttr('{}.poleVectorX'.format(handle)), cmds.getAttr('{}.poleVectorY'.format(handle)), cmds.getAttr('{}.poleVectorZ'.format(handle))])
+    #create a group above and constrain it to the start
+    temp_grp = object_lib.create_parent_grp(loc_pole_vec, post='temp')[0]
+    start_pointC = cmds.pointConstraint(ik_start_jnt, temp_grp)
+    cmds.delete(start_pointC)
+    #move loc to have pull values
+    cmds.move(current_pole_vec.values[0], current_pole_vec.values[1], current_pole_vec.values[2], loc_pole_vec, os=True)
+    cmds.parent(loc_pole_vec, w=True)
+    #aiming the group
+    start_aimC = cmds.aimConstraint(ik_end_jnt, temp_grp, weight=1, worldUpType="object", worldUpObject=loc_pole_vec)
+    cmds.delete(start_aimC)
+    cmds.parent(loc_pole_vec, temp_grp)
+    cmds.rotate(0, 0, 0, loc_pole_vec)
+    #constraining locator to be more centered
+    loc_pointC = cmds.pointConstraint(ik_mid_jnt, loc_pole_vec, skip=['y', 'z'])
+    cmds.delete(loc_pointC)
+    cmds.parent(loc_pole_vec, w=True)
+    cmds.delete(temp_grp)
+    #create an offset grp
+    pole_grp=object_lib.create_parent_grp(loc_pole_vec)[0]
+    cmds.parent(pole_grp, ik_grp)
+    cmds.poleVectorConstraint(loc_pole_vec, handle)
+
+def setup_jnt_chain(start_jnt, end_jnt, switch_cntrl, ik_info, fk_info, jnt_info):
+    helpers.select_obj_hierarchy(start_jnt)
+    set_radius(cmds.ls(sl=True, long=True), jnt_info.radius)
+    #ik joints
+    ik_start_jnt = object_lib.dupl_renamer(start_jnt, post = 'ik')[0]
+    helpers.select_obj_hierarchy(ik_start_jnt)
+    set_radius(cmds.ls(sl=True, long=True), ik_info.radius)
+    ik_mid_jnt = cmds.listRelatives(ik_start_jnt, c=True)[0]
+    ik_end_jnt = helpers.string_manip(helpers.split_obj_name(end_jnt)[1], post = 'ik')
+
+    #fk joints
+    fk_start_jnt = object_lib.dupl_renamer(start_jnt, post = 'fk')[0]
+    helpers.select_obj_hierarchy(fk_start_jnt)
+    set_radius(cmds.ls(sl=True, long=True), fk_info.radius)
+
+    setup_ik_chain(ik_start_jnt, ik_mid_jnt, ik_end_jnt, start_jnt)
+
+    object_lib.create_fk_cntrl(fk_start_jnt)
+
+
+
+
+
