@@ -51,7 +51,7 @@ def create_parent_grp(objects, pre='', post='_offset_grp01', custom=('','')):
         cmds.parent(obj, grp)
     return grps
 
-def create_fk_cntrl(objects, hierarchy=True, constraint = True, pre='anim', post='', custom=('','')):
+def create_fk_cntrl(objects, control = None, hierarchy=True, constraint = True, pre='anim', post='', custom=('','')):
     objects = helpers.turn_to_list(objects)
     if hierarchy:
         objects = reverse_hierarchy(objects)
@@ -81,6 +81,13 @@ def create_fk_cntrl(objects, hierarchy=True, constraint = True, pre='anim', post
                 if len(child_grp) > 0:
                     cmds.parent(child_grp[0], circle_curve)
     return circle_curve_grps
+
+def anim_circle(scale, rotateAngle=[0, 0, 0], center=[0, 0, 0], n='nurbsCircle', degree=3, sections=8):
+    cntrl = cmds.circle(r=scale, d=degree, s=sections, ch=False, n=n, c=center)[0]
+    cmds.xform(cntrl, ro=rotateAngle)
+    # cmds.setAttr(cntrl+'.rotate', rotateAngle)
+    cmds.makeIdentity(cntrl, apply=True, t=True, r=True, s=True, n=False, pn=True)
+    return cntrl
 
 #gets the highest parent of selected nodes (all selected children won't be returned)
 def reverse_hierarchy(objects):

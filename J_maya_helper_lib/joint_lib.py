@@ -55,27 +55,47 @@ def set_radius(joints, radius):
         if cmds.nodeType(j) == 'joint':
             cmds.setAttr('{}.radius'.format(j), radius)
 
-def setup_ik_chain(ik_start_jnt, ik_mid_jnt, ik_end_jnt, start_jnt):
+def setup_ik_chain(ik_start_jnt, ik_name, ik_end_jnt):
     #ik joint chain
-    handle, effector = cmds.ikHandle( n = helpers.string_manip(ik_start_jnt, post = 'handle'), sj = ik_start_jnt, ee = ik_end_jnt, sol = 'ikRPsolver')
-    effector = cmds.rename(effector, helpers.string_manip(ik_start_jnt, post = 'eff'))
+    handle, effector = cmds.ikHandle( n = helpers.string_manip(ik_name, post = 'handle'), sj = ik_start_jnt, ee = ik_end_jnt, sol = 'ikRPsolver')
+    effector = cmds.rename(effector, helpers.string_manip(ik_name, post = 'eff'))
     #create offset grps
-    loc_start = cmds.spaceLocator(n = helpers.string_manip(ik_start_jnt, pre = 'anim', post = 'locOffset'))[0]
-    loc_handle = cmds.spaceLocator(n = helpers.string_manip(ik_end_jnt, pre = 'anim', post = 'handle_locOffset'))[0]
-    loc_pole_vec = cmds.spaceLocator(n = helpers.string_manip(ik_end_jnt, pre = 'anim', post = 'pullVec_locOffset'))[0]
+    loc_start = cmds.spaceLocator(n = helpers.string_manip(ik_name, pre = 'anim', post = 'locOffset'))[0]
+    loc_handle = cmds.spaceLocator(n = helpers.string_manip(ik_name, pre = 'anim', post = 'handle_locOffset'))[0]
+    for obj in [loc_start, loc_handle]:
+        cmds.setAttr('{}.visibility'.format(obj), False)
     #matching transforms
     cmds.matchTransform(loc_start, ik_start_jnt)
     cmds.matchTransform(loc_handle, ik_end_jnt)
     #attach everything
     cmds.pointConstraint(loc_start, ik_start_jnt)
     cmds.pointConstraint(loc_handle, handle)
-    ik_grp = cmds.createNode('transform', n=helpers.string_manip(start_jnt, post = 'ik_grp01'))
-    cmds.parent([loc_start, loc_handle, ik_grp])
+    ik_grp = cmds.createNode('transform', n=helpers.string_manip(ik_name, post = 'grp01'))
+    # cmds.parent([loc_start, loc_handle, ik_grp])
     #set where the pull vector will be
     #get the pull value
-    setup_pull_vec(ik_start_jnt, ik_mid_jnt, ik_end_jnt, handle, loc_pole_vec, ik_grp)
+    cmds.parent(setup_pull_vec(ik_start_jnt, ik_end_jnt, ik_name, handle), ik_grp)
+
+    #attach controls
+    #end
+    anim_end = object_lib.anim_circle(1, rotateAngle=[0,90,90], center=[0, -1, 0], n=helpers.string_manip(ik_name, pre = 'anim', post = 'end'), degree=1, sections=3)
+    cmds.matchTransform(anim_end, ik_end_jnt)
+    cmds.parent(loc_handle, anim_end)
+    cmds.parent(object_lib.create_parent_grp(anim_end)[0], ik_grp)
+
+    #start
+    anim_start = object_lib.anim_circle(1, rotateAngle=[0,0,180], center=[0, -1, 0], n=helpers.string_manip(ik_start_jnt, pre = 'anim'), degree=1, sections=3)
+    cmds.matchTransform(anim_start, ik_start_jnt)
+    cmds.parent(loc_start, anim_start)
+    cmds.parent(object_lib.create_parent_grp(anim_start)[0], ik_grp)
     
-def setup_pull_vec(ik_start_jnt, ik_mid_jnt, ik_end_jnt, handle, loc_pole_vec, ik_grp):
+def setup_pull_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
+    #objects
+    ik_mid_jnt = cmds.listRelatives(ik_start_jnt, c=True)[0]
+    loc_pole_vec = cmds.spaceLocator(n = helpers.string_manip(ik_name, pre = 'anim', post = 'poleVec_locOffset'))[0]
+    cmds.setAttr('{}.visibility'.format(loc_pole_vec), False)
+    anim_obj = object_lib.anim_circle(1, rotateAngle=[0,0,0], center=[0, 0.5, 0], n=helpers.string_manip(ik_name, pre = 'anim', post = 'poleVec'), degree=1, sections=3)
+
     current_pole_vec = helpers.vector([cmds.getAttr('{}.poleVectorX'.format(handle)), cmds.getAttr('{}.poleVectorY'.format(handle)), cmds.getAttr('{}.poleVectorZ'.format(handle))])
     #create a group above and constrain it to the start
     temp_grp = object_lib.create_parent_grp(loc_pole_vec, post='temp')[0]
@@ -93,33 +113,36 @@ def setup_pull_vec(ik_start_jnt, ik_mid_jnt, ik_end_jnt, handle, loc_pole_vec, i
     loc_pointC = cmds.pointConstraint(ik_mid_jnt, loc_pole_vec, skip=['y', 'z'])
     cmds.setAttr('{}.translateY'.format(loc_pole_vec), cmds.getAttr('{}.translateY'.format(loc_pole_vec)) * 2)
     cmds.delete(loc_pointC)
-    cmds.parent(loc_pole_vec, w=True)
+    cmds.matchTransform(anim_obj, loc_pole_vec)
+    cmds.parent(loc_pole_vec, anim_obj)
     cmds.delete(temp_grp)
+
+    
     #create an offset grp
-    pole_grp=object_lib.create_parent_grp(loc_pole_vec)[0]
-    cmds.parent(pole_grp, ik_grp)
+    pole_grp=object_lib.create_parent_grp(anim_obj)[0]
     cmds.poleVectorConstraint(loc_pole_vec, handle)
 
-def setup_jnt_chain(start_jnt, end_jnt, switch_cntrl, ik_info, fk_info, jnt_info):
+    return pole_grp
+#add an ik naming convention
+def setup_jnt_chain(start_jnt, end_jnt, ik_name, switch_cntrl, ik_info, fk_info, jnt_info):
     helpers.select_obj_hierarchy(start_jnt)
     set_radius(cmds.ls(sl=True, long=True), jnt_info.radius)
     #ik joints
     ik_start_jnt = object_lib.dupl_renamer(start_jnt, post = 'ik')[0]
     helpers.select_obj_hierarchy(ik_start_jnt)
     set_radius(cmds.ls(sl=True, long=True), ik_info.radius)
-    ik_mid_jnt = cmds.listRelatives(ik_start_jnt, c=True)[0]
     ik_end_jnt = helpers.string_manip(helpers.split_obj_name(end_jnt)[1], post = 'ik')
+    #delete child after end joints
+    cmds.delete(cmds.listRelatives(ik_end_jnt, c=True))
 
     #fk joints
     fk_start_jnt = object_lib.dupl_renamer(start_jnt, post = 'fk')[0]
+    fk_end_jnt = helpers.string_manip(helpers.split_obj_name(end_jnt)[1], post = 'fk')
     helpers.select_obj_hierarchy(fk_start_jnt)
     set_radius(cmds.ls(sl=True, long=True), fk_info.radius)
+    #delete child after end joints
+    cmds.delete(cmds.listRelatives(fk_end_jnt))
 
-    setup_ik_chain(ik_start_jnt, ik_mid_jnt, ik_end_jnt, start_jnt)
+    setup_ik_chain(ik_start_jnt, ik_name, ik_end_jnt)
 
     object_lib.create_fk_cntrl(fk_start_jnt)
-
-
-
-
-
