@@ -74,7 +74,7 @@ def setup_ik_chain(ik_start_jnt, ik_name, ik_end_jnt):
     # cmds.parent([loc_start, loc_handle, ik_grp])
     #set where the pull vector will be
     #get the pull value
-    cmds.parent(setup_pull_vec(ik_start_jnt, ik_end_jnt, ik_name, handle), ik_grp)
+    cmds.parent(setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle), ik_grp)
 
     #attach controls
     #end
@@ -88,8 +88,10 @@ def setup_ik_chain(ik_start_jnt, ik_name, ik_end_jnt):
     cmds.matchTransform(anim_start, ik_start_jnt)
     cmds.parent(loc_start, anim_start)
     cmds.parent(object_lib.create_parent_grp(anim_start)[0], ik_grp)
-    
-def setup_pull_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
+def stretchy_ik(ik_start_jnt, ik_end, control):
+    print("")
+
+def setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
     #objects
     ik_mid_jnt = cmds.listRelatives(ik_start_jnt, c=True)[0]
     loc_pole_vec = cmds.spaceLocator(n = helpers.string_manip(ik_name, pre = 'anim', post = 'poleVec_locOffset'))[0]
@@ -111,6 +113,7 @@ def setup_pull_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
     cmds.rotate(0, 0, 0, loc_pole_vec)
     #constraining locator to be more centered
     loc_pointC = cmds.pointConstraint(ik_mid_jnt, loc_pole_vec, skip=['y', 'z'])
+    #--------------------------------------------change this -------------------------------------------------
     cmds.setAttr('{}.translateY'.format(loc_pole_vec), cmds.getAttr('{}.translateY'.format(loc_pole_vec)) * 2)
     cmds.delete(loc_pointC)
     cmds.matchTransform(anim_obj, loc_pole_vec)
@@ -123,6 +126,7 @@ def setup_pull_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
     cmds.poleVectorConstraint(loc_pole_vec, handle)
 
     return pole_grp
+
 #add an ik naming convention
 def setup_jnt_chain(start_jnt, end_jnt, ik_name, switch_cntrl, ik_info, fk_info, jnt_info):
     helpers.select_obj_hierarchy(start_jnt)
