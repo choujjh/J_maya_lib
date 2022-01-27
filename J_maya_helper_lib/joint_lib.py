@@ -55,6 +55,7 @@ def create_ind_ik_handles(joints, pre = '', post = 'Handle', custom = ('', ''), 
     return ik_handles
 
 def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name):
+    ik_name = helpers.string_manip(ik_name, post='_ik')
     #ik joint chain
     handle, effector = cmds.ikHandle( n = helpers.string_manip(ik_name, post = 'handle'), sj = ik_start_jnt, ee = ik_end_jnt, sol = 'ikRPsolver')
     effector = cmds.rename(effector, helpers.string_manip(ik_name, post = 'eff'))
@@ -76,10 +77,11 @@ def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name):
     #end
     anim_end = object_lib.anim_circle(1, rotateAngle=[0,90,90], center=[0, -1, 0], n=helpers.string_manip(ik_name, pre = 'anim', post = 'end'), degree=1, sections=3)
     dist = get_chain_len(ik_start_jnt, ik_end_jnt)
-    attr_list = [('stretch', 'bool'), ('soft_perc', 'float'), ('ik_len', 'float')]
-    object_lib.add_attributes(anim_end, 'IK_Attr', attr_list)
+    attr_list = [object_lib.attr_info('stretch', 'bool', True),
+        object_lib.attr_info('soft_perc', 'float', 1, min=0, max=1),
+        object_lib.attr_info('ik_len', 'float', 0)]
+    object_lib.add_attributes(anim_end, attr_list, 'IK_Attr')
     cmds.setAttr('{}.ik_len'.format(anim_end), dist)
-    
     
     cmds.matchTransform(anim_end, ik_end_jnt)
     cmds.parent(loc_handle, anim_end)
@@ -110,8 +112,8 @@ def get_chain_len(start_jnt, end_jnt):
     return dist
 
 def stretchy_ik(ik_start_jnt, ik_name, end_control):
-    cond = cmds.createNode('condition', n = '{}_stretch_cond'.format(ik_name))
-    print("")
+    #cond = cmds.createNode('condition', n = '{}_stretch_cond'.format(ik_name))
+    print("stretchy")
 
 def setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
     #objects
@@ -147,10 +149,24 @@ def setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
     pole_grp=object_lib.create_parent_grp(anim_obj)[0]
     cmds.poleVectorConstraint(loc_pole_vec, handle)
 
+    #create annotate
+    make_annotation(ik_mid_jnt, anim_obj, ik_name)
+
     return pole_grp
+def make_annotation(point_to, point_from, name):
+    ann_point = cmds.spaceLocator(n = '{}_ann_point'.format(name))[0]
+    cmds.setAttr('{}.visibility'.format(ann_point), False)
+    cmds.parent(ann_point, point_to)
+    cmds.makeIdentity(ann_point)
+
+    ann = cmds.annotate(ann_point, tx=name)
+    ann = cmds.listRelatives(ann, p=True)[0]
+    ann = cmds.rename(ann, name + '_ann')
+    cmds.parent(ann, point_from)
+    cmds.makeIdentity(ann)
 
 #add an ik naming convention
-def setup_jnt_chain(start_jnt, end_jnt, ik_name, switch_cntrl, ik_info, fk_info, jnt_info):
+def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jnt_info):
     helpers.select_obj_hierarchy(start_jnt)
     set_radius(cmds.ls(sl=True, long=True), jnt_info.radius)
     #ik joints
@@ -170,7 +186,10 @@ def setup_jnt_chain(start_jnt, end_jnt, ik_name, switch_cntrl, ik_info, fk_info,
     #delete child after end joints
     cmds.delete(cmds.listRelatives(fk_end_jnt))
 
-    setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name)
-
+    #setup
+    setup_ik_chain(ik_start_jnt, ik_end_jnt, name)
     object_lib.create_fk_cntrl(fk_start_jnt)
+
+    #connecting them together
+
     

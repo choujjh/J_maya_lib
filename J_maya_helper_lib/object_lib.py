@@ -2,6 +2,15 @@ import maya.cmds as cmds
 import importlib
 from J_maya_lib.J_maya_helper_lib import helpers
 
+
+class attr_info:
+    def __init__(self, name, type, default, min=None, max=None):
+        self.name = name
+        self.type = type
+        self.default = default
+        self.min = min
+        self.max = max
+
 importlib.reload(helpers)
 #rename objects that were returned
 def object_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_match_string=True):
@@ -50,24 +59,35 @@ def create_parent_grp(objects, pre='', post='_offset_grp01', custom=('','')):
         cmds.parent(obj, grp)
     return grps
 
-def add_attributes(objects, category, attr):
+def add_attributes(objects, attr, category = None):
     objects = helpers.turn_to_list(objects)
     attr = helpers.turn_to_list(attr)
 
     for obj in objects:
         #creating category
-        curr_attr = cmds.listAttr(obj)
-        category_name = '_'
-        while category_name in curr_attr:
-            category_name = category_name + '_'
-            print(category_name)
-        cmds.addAttr(obj, ln = category_name, at='enum', en='{}:'.format(category))
-        cmds.setAttr('{}.{}'.format(obj, category_name), e=True, cb=True)
+        if category != None:
+            curr_attr = cmds.listAttr(obj)
+            category_name = '_'
+            while category_name in curr_attr:
+                category_name = category_name + '_'
+            cmds.addAttr(obj, ln = category_name, at='enum', en='{}:'.format(category))
+            cmds.setAttr('{}.{}'.format(obj, category_name), e=True, cb=True)
         for a in attr:
-            attr_name = a[0]
-            attr_type = a[1]
-            cmds.addAttr(obj, ln = attr_name, at=attr_type, k=True)
-            cmds.setAttr('{}.{}'.format(obj, attr_name), e=True, keyable=True)
+            if a.type == 'bool':
+                cmds.addAttr(obj, ln = a.name, at=a.type, k=True, dv=a.default)
+                cmds.setAttr('{}.{}'.format(obj, a.name), e=True, keyable=True)
+            elif a.type == 'float':
+                cmds.addAttr(obj, ln = a.name, at=a.type, k=True, en=a.default)
+                cmds.setAttr('{}.{}'.format(obj, a.name), e=True, keyable=True)
+                if a.max != None:
+                    cmds.addAttr('{}.{}'.format(obj, a.name), e=True, max=a.max)
+                if a.min != None:
+                    cmds.addAttr('{}.{}'.format(obj, a.name), e=True, min=a.min)
+            elif a.type == 'enum':
+                cmds.addAttr(obj, ln = a.name, at=a.type, k=True, en=':'.join(a.default))
+                cmds.setAttr('{}.{}'.format(obj, a.name), e=True, keyable=True)
+            else:
+                cmds.error('{} type not supported'.format(a.type))
 
 def create_fk_cntrl(objects, hierarchy=True, constraint = True, pre='anim', post='', custom=('','')):
     objects = helpers.turn_to_list(objects)
@@ -95,7 +115,6 @@ def create_fk_cntrl(objects, hierarchy=True, constraint = True, pre='anim', post
         if hierarchy and children is not None:
             for s in children:
                 child_grp = create_fk_cntrl(s)
-                print(child_grp)
                 if len(child_grp) > 0:
                     cmds.parent(child_grp[0], circle_curve)
     return circle_curve_grps
