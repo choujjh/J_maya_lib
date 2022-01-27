@@ -8,6 +8,15 @@ from J_maya_lib.J_maya_helper_lib import object_lib
 importlib.reload(helpers)
 importlib.reload(object_lib)
 
+class joint_info:
+    def __init__(self, color=5, radius=0.5):
+        self.color = color
+        self.radius = radius
+def set_radius(joints, radius):
+    joints = helpers.turn_to_list(joints)
+    for j in joints:
+        if cmds.nodeType(j) == 'joint':
+            cmds.setAttr('{}.radius'.format(j), radius)
 
 def create_ind_ik_handles(joints, pre = '', post = 'Handle', custom = ('', ''), rot_plane_slv=True):
     # get the hierarchy
@@ -45,17 +54,7 @@ def create_ind_ik_handles(joints, pre = '', post = 'Handle', custom = ('', ''), 
             ik_handles.append(cmds.ikHandle(n = handle, sj = j, ee = joint_dict[j][0], sol = 'ikSCsolver')[0])
     return ik_handles
 
-class joint_info:
-    def __init__(self, color=5, radius=0.5):
-        self.color = color
-        self.radius = radius
-def set_radius(joints, radius):
-    joints = helpers.turn_to_list(joints)
-    for j in joints:
-        if cmds.nodeType(j) == 'joint':
-            cmds.setAttr('{}.radius'.format(j), radius)
-
-def setup_ik_chain(ik_start_jnt, ik_name, ik_end_jnt):
+def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name):
     #ik joint chain
     handle, effector = cmds.ikHandle( n = helpers.string_manip(ik_name, post = 'handle'), sj = ik_start_jnt, ee = ik_end_jnt, sol = 'ikRPsolver')
     effector = cmds.rename(effector, helpers.string_manip(ik_name, post = 'eff'))
@@ -71,14 +70,17 @@ def setup_ik_chain(ik_start_jnt, ik_name, ik_end_jnt):
     cmds.pointConstraint(loc_start, ik_start_jnt)
     cmds.pointConstraint(loc_handle, handle)
     ik_grp = cmds.createNode('transform', n=helpers.string_manip(ik_name, post = 'grp01'))
-    # cmds.parent([loc_start, loc_handle, ik_grp])
-    #set where the pull vector will be
-    #get the pull value
-    cmds.parent(setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle), ik_grp)
+    
 
     #attach controls
     #end
     anim_end = object_lib.anim_circle(1, rotateAngle=[0,90,90], center=[0, -1, 0], n=helpers.string_manip(ik_name, pre = 'anim', post = 'end'), degree=1, sections=3)
+    dist = get_chain_len(ik_start_jnt, ik_end_jnt)
+    attr_list = [('stretch', 'bool'), ('soft_perc', 'float'), ('ik_len', 'float')]
+    object_lib.add_attributes(anim_end, 'IK_Attr', attr_list)
+    cmds.setAttr('{}.ik_len'.format(anim_end), dist)
+    
+    
     cmds.matchTransform(anim_end, ik_end_jnt)
     cmds.parent(loc_handle, anim_end)
     cmds.parent(object_lib.create_parent_grp(anim_end)[0], ik_grp)
@@ -88,7 +90,27 @@ def setup_ik_chain(ik_start_jnt, ik_name, ik_end_jnt):
     cmds.matchTransform(anim_start, ik_start_jnt)
     cmds.parent(loc_start, anim_start)
     cmds.parent(object_lib.create_parent_grp(anim_start)[0], ik_grp)
-def stretchy_ik(ik_start_jnt, ik_end, control):
+
+    #get the pole value
+    cmds.parent(setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle), ik_grp)
+
+    #lock len attr
+    cmds.setAttr('{}.ik_len'.format(anim_end), lock=True)
+def get_chain_len(start_jnt, end_jnt):
+    long = cmds.ls(end_jnt, long=True)[0]
+    index = long.find(helpers.split_obj_name(start_jnt)[1])
+    long = long[index:].split('|')
+    dist = 0
+    for i in range(len(long) - 1):
+        firstPoint = helpers.vector(cmds.xform(long[i], q=True, piv=True, ws=True)[:3])
+        secondPoint = helpers.vector(cmds.xform(long[i+1], q=True, piv=True, ws=True)[:3])
+        firstPoint = secondPoint-firstPoint
+        mag = firstPoint.mag()
+        dist = dist+mag
+    return dist
+
+def stretchy_ik(ik_start_jnt, ik_name, end_control):
+    cond = cmds.createNode('condition', n = '{}_stretch_cond'.format(ik_name))
     print("")
 
 def setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
@@ -113,8 +135,8 @@ def setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
     cmds.rotate(0, 0, 0, loc_pole_vec)
     #constraining locator to be more centered
     loc_pointC = cmds.pointConstraint(ik_mid_jnt, loc_pole_vec, skip=['y', 'z'])
-    #--------------------------------------------change this -------------------------------------------------
-    cmds.setAttr('{}.translateY'.format(loc_pole_vec), cmds.getAttr('{}.translateY'.format(loc_pole_vec)) * 2)
+    #offsetting control
+    cmds.setAttr('{}.translateY'.format(loc_pole_vec), get_chain_len(ik_start_jnt, ik_end_jnt) * 0.4)
     cmds.delete(loc_pointC)
     cmds.matchTransform(anim_obj, loc_pole_vec)
     cmds.parent(loc_pole_vec, anim_obj)
@@ -135,18 +157,20 @@ def setup_jnt_chain(start_jnt, end_jnt, ik_name, switch_cntrl, ik_info, fk_info,
     ik_start_jnt = object_lib.dupl_renamer(start_jnt, post = 'ik')[0]
     helpers.select_obj_hierarchy(ik_start_jnt)
     set_radius(cmds.ls(sl=True, long=True), ik_info.radius)
-    ik_end_jnt = helpers.string_manip(helpers.split_obj_name(end_jnt)[1], post = 'ik')
+    ik_end_jnt = helpers.string_manip(end_jnt, post = 'ik')
     #delete child after end joints
     cmds.delete(cmds.listRelatives(ik_end_jnt, c=True))
 
+    
     #fk joints
     fk_start_jnt = object_lib.dupl_renamer(start_jnt, post = 'fk')[0]
-    fk_end_jnt = helpers.string_manip(helpers.split_obj_name(end_jnt)[1], post = 'fk')
+    fk_end_jnt = helpers.string_manip(end_jnt, post = 'fk')
     helpers.select_obj_hierarchy(fk_start_jnt)
     set_radius(cmds.ls(sl=True, long=True), fk_info.radius)
     #delete child after end joints
     cmds.delete(cmds.listRelatives(fk_end_jnt))
 
-    setup_ik_chain(ik_start_jnt, ik_name, ik_end_jnt)
+    setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name)
 
     object_lib.create_fk_cntrl(fk_start_jnt)
+    

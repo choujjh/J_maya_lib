@@ -3,7 +3,6 @@ import importlib
 from J_maya_lib.J_maya_helper_lib import helpers
 
 importlib.reload(helpers)
-
 #rename objects that were returned
 def object_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_match_string=True):
     #check parameters
@@ -51,7 +50,26 @@ def create_parent_grp(objects, pre='', post='_offset_grp01', custom=('','')):
         cmds.parent(obj, grp)
     return grps
 
-def create_fk_cntrl(objects, control = None, hierarchy=True, constraint = True, pre='anim', post='', custom=('','')):
+def add_attributes(objects, category, attr):
+    objects = helpers.turn_to_list(objects)
+    attr = helpers.turn_to_list(attr)
+
+    for obj in objects:
+        #creating category
+        curr_attr = cmds.listAttr(obj)
+        category_name = '_'
+        while category_name in curr_attr:
+            category_name = category_name + '_'
+            print(category_name)
+        cmds.addAttr(obj, ln = category_name, at='enum', en='{}:'.format(category))
+        cmds.setAttr('{}.{}'.format(obj, category_name), e=True, cb=True)
+        for a in attr:
+            attr_name = a[0]
+            attr_type = a[1]
+            cmds.addAttr(obj, ln = attr_name, at=attr_type, k=True)
+            cmds.setAttr('{}.{}'.format(obj, attr_name), e=True, keyable=True)
+
+def create_fk_cntrl(objects, hierarchy=True, constraint = True, pre='anim', post='', custom=('','')):
     objects = helpers.turn_to_list(objects)
     if hierarchy:
         objects = reverse_hierarchy(objects)

@@ -1,6 +1,41 @@
 import maya.cmds as cmds
 import math
 
+class vector:
+    def __init__(self, values):
+        self.values = values
+        self.length = len(values)
+    def __add__(self, obj):
+        if self.length != obj.length:
+            cmds.warning('length mismatch')
+        result = []
+        for s, o in zip(self.values, obj.values):
+            result.append(s+o)
+        return vector(result)
+    def __sub__(self, obj):
+        if self.length != obj.length:
+            cmds.warning('length mismatch')
+        result = []
+        for s, o in zip(self.values, obj.values):
+            result.append(s-o)
+        return vector(result)
+    def __mult__(self, obj):
+        if self.length != obj.length:
+            cmds.warning('length mismatch')
+        result = []
+        for s, o in zip(self.values, obj.values):
+            result.append(s*o)
+        return vector(result)
+    def dot(self, obj):
+        result = self.__mult__(obj)
+        sum = 0
+        for r in result.values:
+            sum = sum+r
+        return sum
+    def mag(self):
+        result = math.sqrt(self.dot(self))
+        return result
+
 def instance_exception(var_name, var, type):
     if not isinstance(var, type):
         raise Exception('{} {} needs to be a {}'.format(var_name, var, str(type)))
