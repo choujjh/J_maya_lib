@@ -70,6 +70,7 @@ def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name):
     #attach everything
     cmds.pointConstraint(loc_start, ik_start_jnt)
     cmds.pointConstraint(loc_handle, handle)
+    cmds.orientConstraint(loc_handle, ik_end_jnt)
     ik_grp = cmds.createNode('transform', n=helpers.string_manip(ik_name, post = 'grp01'))
     
 
@@ -167,6 +168,7 @@ def make_annotation(point_to, point_from, name):
 
 #add an ik naming convention
 def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jnt_info):
+    node_editor_nodes = []
     helpers.select_obj_hierarchy(start_jnt)
     set_radius(cmds.ls(sl=True, long=True), jnt_info.radius)
     #ik joints
@@ -191,5 +193,27 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     object_lib.create_fk_cntrl(fk_start_jnt)
 
     #connecting them together
+    attr_list = [object_lib.attr_info('blend', 'float', default=0, min=0, max=1)]
+    object_lib.add_attributes(switch_cntrl, attr_list, 'IK_to_FK')
+
+    attr_list = [object_lib.attr_info('world_scale', 'float', default=1, min=0)]
+    object_lib.add_attributes(switch_cntrl, attr_list, None)
+    
+    long = cmds.ls(end_jnt, long=True)[0]
+    index = long.find(helpers.split_obj_name(start_jnt)[1])
+    long = long[index:].split('|')
+    for obj in long:
+        curr_ik_jnt = helpers.string_manip(obj, post = 'ik')
+        curr_fk_jnt = helpers.string_manip(obj, post = 'fk')
+        for attr in ['translate', 'rotate', 'scale']:
+            bc = cmds.createNode('blendColors', n = '{}_{}_blendColor'.format(obj, attr))
+            node_editor_nodes.append(bc)
+            cmds.connectAttr('{}.blend'.format(switch_cntrl), '{}.blender'.format(bc))
+            cmds.connectAttr('{}.{}'.format(curr_fk_jnt, attr), '{}.color1'.format(bc))
+            cmds.connectAttr('{}.{}'.format(curr_ik_jnt, attr), '{}.color2'.format(bc))
+            cmds.connectAttr('{}.output'.format(bc), '{}.{}'.format(obj, attr))
+    
+    cmds.sets(node_editor_nodes, n=name + '_set')
+
 
     

@@ -77,7 +77,7 @@ def add_attributes(objects, attr, category = None):
                 cmds.addAttr(obj, ln = a.name, at=a.type, k=True, dv=a.default)
                 cmds.setAttr('{}.{}'.format(obj, a.name), e=True, keyable=True)
             elif a.type == 'float':
-                cmds.addAttr(obj, ln = a.name, at=a.type, k=True, en=a.default)
+                cmds.addAttr(obj, ln = a.name, at=a.type, k=True, dv=a.default)
                 cmds.setAttr('{}.{}'.format(obj, a.name), e=True, keyable=True)
                 if a.max != None:
                     cmds.addAttr('{}.{}'.format(obj, a.name), e=True, max=a.max)
