@@ -14,6 +14,8 @@ importlib.reload(helpers)
 #return name
 #on update
 #get value
+
+
 class text_field:
     def __init__(self, parent, tx_label, tx_width=0, long_name=False):
         if tx_width == 0:
@@ -111,10 +113,10 @@ class color_picker:
     #getting information from class
     def get_name(self):
         return self.name
-    def get_width_height(self):
-        width = cmds.palettePort(self.name, q=True, w=True)
-        height = cmds.palettePort(self.name, q=True, h=True)
-        return width, height
+    # def get_width_height(self):
+    #     width = cmds.palettePort(self.name, q=True, w=True)
+    #     height = cmds.palettePort(self.name, q=True, h=True)
+    #     return width, height
     def get_value(self):
         return cmds.palettePort(self.name, q=True, scc=True) + 1
     
