@@ -169,12 +169,15 @@ def get_connections(objects):
             sources = [x for x in sources if x in short_objs]
         else:
             sources=[]
-        destinations = [x for x in cmds.listConnections(obj, s=False, d=True) if x in short_objs]
+        
+        destinations = cmds.listConnections(obj, s=False, d=True)
         if destinations != None:
             destinations = [x for x in destinations if x in short_objs]
         else:
             destinations = []
-
+        print('obj: {}'.format(obj))
+        print('source: {}'.format(sources))
+        print('destination: {}'.format(destinations))
 
         # separating out connections to have the right ordering
         conn_driver = cmds.listConnections(obj, c=True, p=True)[::2]
@@ -201,6 +204,7 @@ def get_connections(objects):
 #connect with a new naming alias
 def connect_new_names(objects, pre='', post='', custom=('', '')):
     connections = get_connections(objects)
+    print(connections)
     for con in connections:
         driver = helpers.string_manip(con[0], pre, post, custom)
         driven = helpers.string_manip(con[1], pre, post, custom)
@@ -248,6 +252,7 @@ def filter_node_types(objects, types, remove=True):
 #duplicates nodes and retains connections
 def dupl_node_connections(objects, pre='', post='', custom=('', '')):
     objects = helpers.turn_to_list(objects)
+    print(objects)
 
     dupl_renamer(filter_node_types(objects, 'unitConversion'), pre, post, custom)
     connect_new_names(objects, pre, post, custom)
