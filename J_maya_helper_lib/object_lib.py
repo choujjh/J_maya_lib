@@ -169,7 +169,6 @@ def get_connections(objects):
             sources = [x for x in sources if x in short_objs]
         else:
             sources=[]
-        
         destinations = cmds.listConnections(obj, s=False, d=True)
         if destinations != None:
             destinations = [x for x in destinations if x in short_objs]
