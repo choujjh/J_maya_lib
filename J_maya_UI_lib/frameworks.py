@@ -82,12 +82,12 @@ class J_window(J_layout):
         cmds.showWindow(super().get_name())
 class J_frameLayout(J_layout):
     def __init__(self, parent, width, height, collapsable=True):
-        super().__init__(parent, width, height)
+        super().__init__(parent, width, height-25)
         super().set_name((cmds.frameLayout(cll=collapsable, w=width, h=height, p=UI_helpers.get_UI_parent_string(parent))))
         self.collapsable = collapsable
         if collapsable:
-            cmds.frameLayout(super().get_name(), e=True, cc = super().redim_hierarchy_layout(False), ec = super().redim_hierarchy_layout(True))
-
+            cmds.frameLayout(super().get_name(), e=True, cc = lambda: super().redim_hierarchy_layout(False))
+            cmds.frameLayout(super().get_name(), e=True, ec = lambda: super().redim_hierarchy_layout(True))
     def redim_layout(self, expand=True, width=0, height=0):
         curr_height = cmds.frameLayout(super().get_name(), q=True, h=True)
         curr_width = cmds.frameLayout(super().get_name(), q=True, width=True)
