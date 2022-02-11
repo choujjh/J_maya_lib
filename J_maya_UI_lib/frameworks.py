@@ -40,6 +40,7 @@ class J_layout:
 
     def redim_layout(self, expand, width=0, height=0):
         cmds.error("collapse_layout musht be implemented in children")
+
     def redim_hierarchy_layout(self, expand, width=False, height=True):
         width= self.width if width else 0
         height= self.height if height else 0
@@ -63,18 +64,12 @@ class J_window(J_layout):
     def redim_layout(self, expand=True, width=0, height=0):
         curr_height = cmds.window(super().get_name(), q=True, height=True)
         curr_width = cmds.window(super().get_name(), q=True, width=True)
-        print(curr_height)
-        print(curr_width)
-        print(width)
-        print(height)
         if not expand:
             width = -width
             height = -height
         if abs(width) >= 1:
-            print("width {}".format(curr_width+width))
             cmds.window(super().get_name(), e=True, w=curr_width+width)
         if abs(height) >= 1:
-            print("height {}".format(curr_height+height))
             cmds.window(super().get_name(), e=True, h=curr_height+height)
         
         
@@ -86,19 +81,15 @@ class J_frameLayout(J_layout):
         super().set_name((cmds.frameLayout(cll=collapsable, w=width, h=height, p=UI_helpers.get_UI_parent_string(parent))))
         self.collapsable = collapsable
         if collapsable:
-            cmds.frameLayout(super().get_name(), e=True, cc = lambda: super().redim_hierarchy_layout(False))
-            cmds.frameLayout(super().get_name(), e=True, ec = lambda: super().redim_hierarchy_layout(True))
+            cmds.frameLayout(super().get_name(), e=True, cc = lambda: super(J_frameLayout, self).redim_hierarchy_layout(False))
+            cmds.frameLayout(super().get_name(), e=True, ec = lambda: super(J_frameLayout, self).redim_hierarchy_layout(True))
     def redim_layout(self, expand=True, width=0, height=0):
         curr_height = cmds.frameLayout(super().get_name(), q=True, h=True)
-        curr_width = cmds.frameLayout(super().get_name(), q=True, width=True)
         if self.collapsable:
             if expand:
-                cmds.frameLayout(super().get_name(), e=True, h=curr_height + height -25)
+                cmds.frameLayout(super().get_name(), e=True, h=curr_height)
             else:
                 cmds.frameLayout(super().get_name(), e=True, h=25)
-        if not expand:
-            width = -width
-            height = -height
         
     
         
