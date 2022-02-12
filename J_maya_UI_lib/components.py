@@ -4,16 +4,10 @@ from J_maya_lib.J_maya_helper_lib import helpers
 import maya.cmds as cmds
 
 import importlib
+import math
 
 importlib.reload(UI_helpers)
 importlib.reload(helpers)
-
-#visibility
-#on change
-#parent
-#return name
-#on update
-#get value
 
 
 class text_field:
@@ -91,14 +85,15 @@ class radio_collection:
         return self.rad_buttons
 
 class color_picker:
-    def __init__(self, parent, width=400, height=120, visibility=True, edit=True):
-        self.name = palette = cmds.palettePort(dim=(12, 3), topDown=True, vis=True, scc=16, p=UI_helpers.get_UI_parent_string(parent))
-        for i in range(1, 37):
+    def __init__(self, parent, horz_cells=12, width=400, height=120, visibility=True, edit=True):
+        vert_cells = math.ceil(31.0/horz_cells)
+        self.name = cmds.palettePort(dim=(horz_cells, vert_cells), topDown=True, vis=True, scc=16, p=UI_helpers.get_UI_parent_string(parent), w=width, h=height)
+        for i in range(1, horz_cells * vert_cells + 1):
             if i <= 31:
                 temp = cmds.colorIndex(i, q=True)
-                cmds.palettePort(palette, rgb = [i-1, temp[0], temp[1], temp[2]], e=True, r=True)
+                cmds.palettePort(self.name, rgb = [i-1, temp[0], temp[1], temp[2]], e=True, r=True)
             else:
-                cmds.palettePort(palette, rgb = [i-1, 0, 0, 0], e=True, r=True)
+                cmds.palettePort(self.name, rgb = [i-1, 0, 0, 0], e=True, r=True)
         self.set_width_height(width, height)
         self.set_vis(visibility)
         self.editable(edit)
@@ -113,16 +108,12 @@ class color_picker:
     #getting information from class
     def get_name(self):
         return self.name
-    # def get_width_height(self):
-    #     width = cmds.palettePort(self.name, q=True, w=True)
-    #     height = cmds.palettePort(self.name, q=True, h=True)
-    #     return width, height
     def get_value(self):
-        return cmds.palettePort(self.name, q=True, scc=True) + 1
+        return min(cmds.palettePort(self.name, q=True, scc=True) + 1, 31)
     
 class check_box:
     def __init__(self, parent, label):
-        self.cb = cmds.checkBox(label=label, p=parent)
+        self.cb = cmds.checkBox(label=label, p=UI_helpers.get_UI_parent_string(parent))
         
     def set_vis(self, visibility):
         cmds.checkBox(self.cb, e=True, visible=visibility)

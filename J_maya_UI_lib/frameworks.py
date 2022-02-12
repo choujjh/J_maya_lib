@@ -38,8 +38,10 @@ class J_layout:
                 break
         return objs
 
+    def display_state(self, enabled, visible):
+        cmds.error("display_state must be implemented in children")
     def redim_layout(self, expand, width=0, height=0):
-        cmds.error("collapse_layout musht be implemented in children")
+        cmds.error("redim_layout must be implemented in children")
 
     def redim_hierarchy_layout(self, expand, width=False, height=True):
         width= self.width if width else 0
@@ -48,6 +50,7 @@ class J_layout:
         self.redim_layout(expand, width, height)
         for p in parents:
             p.redim_layout(expand, width, height)
+    
     def set_name(self, name):
         self.name = name
     def get_name(self):
@@ -55,11 +58,14 @@ class J_layout:
 
 
 class J_window(J_layout):
-    def __init__(self, width, height, title, restart=True):
+    def __init__(self, parent, width, height, title, restart=True):
         super().__init__(None, width, height)
         if restart and cmds.window(title, exists=True):
             cmds.deleteUI(title)
-        super().set_name((cmds.window(title, title=title, w=width, h=height)))
+        if parent == None:
+            super().set_name((cmds.window(title, title=title, w=width, h=height)))
+        else:
+            super().set_name((cmds.window(title, title=title, w=width, h=height, p=parent)))
 
     def redim_layout(self, expand=True, width=0, height=0):
         curr_height = cmds.window(super().get_name(), q=True, height=True)
@@ -76,9 +82,10 @@ class J_window(J_layout):
     def J_show_window(self):
         cmds.showWindow(super().get_name())
 class J_frameLayout(J_layout):
-    def __init__(self, parent, width, height, collapsable=True):
+    def __init__(self, parent, width, height, title, collapsable=True):
         super().__init__(parent, width, height-25)
-        super().set_name((cmds.frameLayout(cll=collapsable, w=width, h=height, p=UI_helpers.get_UI_parent_string(parent))))
+        super().set_name((cmds.frameLayout(cll=collapsable, w=width, h=height, p=UI_helpers.get_UI_parent_string(parent), label=title)))
+        cmds.frameLayout(super().get_name(), e=True, mw=5, mh=5)
         self.collapsable = collapsable
         if collapsable:
             cmds.frameLayout(super().get_name(), e=True, cc = lambda: super(J_frameLayout, self).redim_hierarchy_layout(False))
@@ -90,6 +97,9 @@ class J_frameLayout(J_layout):
                 cmds.frameLayout(super().get_name(), e=True, h=curr_height)
             else:
                 cmds.frameLayout(super().get_name(), e=True, h=25)
+    def display_state(self, enabled, visible):
+        cmds.frameLayout(super().get_name(), e=True, en=enabled, collapse=not visible)
+    
         
     
         
