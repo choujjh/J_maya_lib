@@ -45,7 +45,7 @@ class J_layout:
 
     def redim_hierarchy_layout(self, expand, width=False, height=True):
 
-        print("redim: {}| width: {}| height: {}".format(expand, width, height))
+        #print("redim: {}| width: {}| height: {}".format(expand, width, height))
 
         width= self.width if width else 0
         height= self.height if height else 0
@@ -101,11 +101,6 @@ class J_frameLayout(J_layout):
                 cmds.frameLayout(super().get_name(), e=True, h=25)
     def display_state(self, enabled, visible):
         isCollapsed = cmds.frameLayout(super().get_name(), q=True, collapse=True)
-        # if isCollapsed != visible:
-        #     if visible:
-        #         super(J_frameLayout, self).redim_hierarchy_layout(False)
-        #     else:
-        #         super(J_frameLayout, self).redim_hierarchy_layout(True)
         cmds.frameLayout(super().get_name(), e=True, collapse=not visible)
         cmds.frameLayout(super().get_name(), e=True, en=enabled)
         if isCollapsed == visible:
@@ -120,18 +115,11 @@ class J_columnLayout(J_layout):
     def __init__(self, parent, width, height, adj=True):
         super().__init__(parent, width, height)
         super().set_name(cmds.columnLayout(p=UI_helpers.get_UI_parent_string(parent), adj=adj, w=width))
+        cmds.columnLayout(super().get_name(), e=True, )
     def redim_layout(self, expand=True, width=0, height=0):
         pass
-        # curr_height = cmds.columnLayout(super().get_name(), q=True, h=True)
-        # curr_width = cmds.columnLayout(super().get_name(), q=True, w=True)
-        # print("Column Height: {}".format(curr_height))
-        # print("Column Width: {}".format(curr_width))
-        # if expand:
-        #     cmds.columnLayout(super().get_name(), e=True, h=curr_height+height, w=curr_width+width)
-        # else:
-        #     cmds.columnLayout(super().get_name(), e=True, h=curr_height-height, w=curr_width-width)
     def display_state(self, enabled, visible):
-        cmds.columnLayout(super().get_name(), e=True, en=enabled, collapse=not visible)
+        cmds.columnLayout(super().get_name(), e=True, en=enabled, vis=visible)
 
         
     
