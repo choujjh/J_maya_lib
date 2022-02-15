@@ -44,6 +44,9 @@ class J_layout:
         cmds.error("redim_layout must be implemented in children")
 
     def redim_hierarchy_layout(self, expand, width=False, height=True):
+
+        print("redim: {}| width: {}| height: {}".format(expand, width, height))
+
         width= self.width if width else 0
         height= self.height if height else 0
         parents = self.get_all_parents()
@@ -97,8 +100,20 @@ class J_frameLayout(J_layout):
             else:
                 cmds.frameLayout(super().get_name(), e=True, h=25)
     def display_state(self, enabled, visible):
+        isCollapsed = cmds.frameLayout(super().get_name(), q=True, collapse=True)
+        # if isCollapsed != visible:
+        #     if visible:
+        #         super(J_frameLayout, self).redim_hierarchy_layout(False)
+        #     else:
+        #         super(J_frameLayout, self).redim_hierarchy_layout(True)
         cmds.frameLayout(super().get_name(), e=True, collapse=not visible)
         cmds.frameLayout(super().get_name(), e=True, en=enabled)
+        if isCollapsed == visible:
+            if visible:
+                super(J_frameLayout, self).redim_hierarchy_layout(True)
+            else:
+                super(J_frameLayout, self).redim_hierarchy_layout(False)
+        
     
 
 class J_columnLayout(J_layout):
@@ -107,15 +122,16 @@ class J_columnLayout(J_layout):
         super().set_name(cmds.columnLayout(p=UI_helpers.get_UI_parent_string(parent), adj=adj, w=width))
     def redim_layout(self, expand=True, width=0, height=0):
         pass
-        # curr_height = cmds.J_columnLayout(super().get_name(), q=True, h=True)
-        # if self.collapsable:
-        #     if expand:
-        #         cmds.J_columnLayout(super().get_name(), e=True, h=curr_height)
-        #     else:
-        #         cmds.J_columnLayout(super().get_name(), e=True, h=25)
+        # curr_height = cmds.columnLayout(super().get_name(), q=True, h=True)
+        # curr_width = cmds.columnLayout(super().get_name(), q=True, w=True)
+        # print("Column Height: {}".format(curr_height))
+        # print("Column Width: {}".format(curr_width))
+        # if expand:
+        #     cmds.columnLayout(super().get_name(), e=True, h=curr_height+height, w=curr_width+width)
+        # else:
+        #     cmds.columnLayout(super().get_name(), e=True, h=curr_height-height, w=curr_width-width)
     def display_state(self, enabled, visible):
-        cmds.columnLayout(super().get_name(), e=True, collapse=not visible)
-        #cmds.columnLayout(super().get_name(), e=True, en=enabled)
+        cmds.columnLayout(super().get_name(), e=True, en=enabled, collapse=not visible)
 
         
     
