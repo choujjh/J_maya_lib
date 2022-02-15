@@ -82,24 +82,41 @@ class J_window(J_layout):
     def J_show_window(self):
         cmds.showWindow(super().get_name())
 class J_frameLayout(J_layout):
-    def __init__(self, parent, width, height, title, collapsable=True):
+    def __init__(self, parent, width, height, title, collapsable=True, redim=True):
         super().__init__(parent, width, height-25)
         super().set_name((cmds.frameLayout(cll=collapsable, w=width, h=height, p=UI_helpers.get_UI_parent_string(parent), label=title)))
         cmds.frameLayout(super().get_name(), e=True, mw=5, mh=5)
         self.collapsable = collapsable
-        if collapsable:
-            cmds.frameLayout(super().get_name(), e=True, cc = lambda: super(J_frameLayout, self).redim_hierarchy_layout(False))
-            cmds.frameLayout(super().get_name(), e=True, ec = lambda: super(J_frameLayout, self).redim_hierarchy_layout(True))
+        if redim:
+            cmds.frameLayout(super(J_frameLayout, self).get_name(), e=True, pcc = lambda: super(J_frameLayout, self).redim_hierarchy_layout(False))
+            cmds.frameLayout(super(J_frameLayout, self).get_name(), e=True, pec = lambda: super(J_frameLayout, self).redim_hierarchy_layout(True))
     def redim_layout(self, expand=True, width=0, height=0):
-        curr_height = cmds.frameLayout(super().get_name(), q=True, h=True)
         if self.collapsable:
             if expand:
-                cmds.frameLayout(super().get_name(), e=True, h=curr_height)
+                cmds.frameLayout(super().get_name(), e=True, h=super().get_width_height()[1] + 25)
             else:
                 cmds.frameLayout(super().get_name(), e=True, h=25)
     def display_state(self, enabled, visible):
-        cmds.frameLayout(super().get_name(), e=True, en=enabled, collapse=not visible)
+        cmds.frameLayout(super().get_name(), e=True, collapse=not visible)
+        cmds.frameLayout(super().get_name(), e=True, en=enabled)
     
+
+class J_columnLayout(J_layout):
+    def __init__(self, parent, width, height, adj=True):
+        super().__init__(parent, width, height)
+        super().set_name(cmds.columnLayout(p=UI_helpers.get_UI_parent_string(parent), adj=adj, w=width))
+    def redim_layout(self, expand=True, width=0, height=0):
+        pass
+        # curr_height = cmds.J_columnLayout(super().get_name(), q=True, h=True)
+        # if self.collapsable:
+        #     if expand:
+        #         cmds.J_columnLayout(super().get_name(), e=True, h=curr_height)
+        #     else:
+        #         cmds.J_columnLayout(super().get_name(), e=True, h=25)
+    def display_state(self, enabled, visible):
+        cmds.columnLayout(super().get_name(), e=True, collapse=not visible)
+        #cmds.columnLayout(super().get_name(), e=True, en=enabled)
+
         
     
         
