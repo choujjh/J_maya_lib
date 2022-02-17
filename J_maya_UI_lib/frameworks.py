@@ -121,6 +121,17 @@ class J_columnLayout(J_layout):
     def display_state(self, enabled, visible):
         cmds.columnLayout(super().get_name(), e=True, en=enabled, vis=visible)
 
+
+class J_rowLayout(J_layout):
+    def __init__(self, parent, width, height):
+        super().__init__(parent, width, height)
+        super().set_name(cmds.rowLayout(p=UI_helpers.get_UI_parent_string(parent), w=width))
+        cmds.rowLayout(super().get_name(), e=True, )
+    def redim_layout(self, expand=True, width=0, height=0):
+        pass
+    def display_state(self, enabled, visible):
+        cmds.rowLayout(super().get_name(), e=True, en=enabled, vis=visible)
+
         
     
         
