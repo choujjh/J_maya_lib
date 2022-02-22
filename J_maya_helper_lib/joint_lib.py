@@ -168,6 +168,7 @@ def make_annotation(point_to, point_from, name):
 
 #add an ik naming convention
 def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jnt_info):
+
     node_editor_nodes = []
     helpers.select_obj_hierarchy(start_jnt)
     set_radius(cmds.ls(sl=True, long=True), jnt_info.radius)

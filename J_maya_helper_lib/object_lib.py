@@ -255,3 +255,25 @@ def dupl_node_connections(objects, pre='', post='', custom=('', '')):
 
     dupl_renamer(filter_node_types(objects, 'unitConversion'), pre, post, custom)
     connect_new_names(objects, pre, post, custom)
+
+#note only works with transform's shapes and joints
+def color_object(objects, color, index=True):
+    objects = filter_node_types(objects, ['transform', 'joint'], remove=False)
+
+    for obj in objects:
+        shapes = cmds.listRelatives(obj, s=True)
+        if shapes == None:
+            cmds.setAttr('{}.overrideEnabled'.format(obj), True)
+            if index:
+                cmds.setAttr('{}.overrideRGBColors'.format(obj), 0)
+                cmds.setAttr('{}.overrideColor'.format(obj), color)
+            else:
+                pass
+        else:
+            for s in shapes:
+                cmds.setAttr('{}.overrideEnabled'.format(s), True)
+                if index:
+                    cmds.setAttr('{}.overrideRGBColors'.format(s), 0)
+                    cmds.setAttr('{}.overrideColor'.format(s), color)
+                else:
+                    pass

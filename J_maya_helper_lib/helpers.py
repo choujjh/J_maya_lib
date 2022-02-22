@@ -45,6 +45,7 @@ def instance_exception(var_name, var, type):
 
 #string manipulation stuff
 def split_obj_name(obj):
+    print(obj)
     path_name = obj[:obj.rfind('|')]
     obj_name = obj[obj.rfind('|') + 1:]
     return path_name, obj_name

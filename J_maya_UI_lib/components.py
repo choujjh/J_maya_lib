@@ -11,10 +11,12 @@ importlib.reload(helpers)
 
 
 class text_field:
-    def __init__(self, parent, tx_label, tx_width=0, long_name=False):
+    def __init__(self, parent, tx_label, tx_width=0, tf_width=0, long_name=False):
         if tx_width == 0:
             tx_width = len(tx_label * 8)
-        self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, tx_width)], p=UI_helpers.get_UI_parent_string(parent))
+        if tf_width == 0:
+            tf_width =1000
+        self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, tx_width), (2, tf_width)], p=UI_helpers.get_UI_parent_string(parent))
         self.text = cmds.text(l = tx_label)
         self.tf = cmds.textField()
     #changing things on text_field
@@ -30,11 +32,43 @@ class text_field:
     def get_value(self):
         return cmds.textField(self.tf, q=True, text=True).split(', ')
 
+class button_color_index_slider:
+    def __init__(self, parent, tx_label, tx_width=0, tf_width=0, color_picker=None, enabled=False):
+        if tx_width == 0:
+            tx_width = len(tx_label * 8)
+        if tf_width == 0:
+            tf_width =1000
+        self.color_picker = color_picker
+        self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, tx_width), (2, tf_width)], p=UI_helpers.get_UI_parent_string(parent))
+        self.button = cmds.button(l = tx_label)
+        self.color_index = cmds.colorIndexSliderGrp( label="", adj = True, min=1, max=32, value=10)
+        self.set_color_picker(color_picker)
+        self.editable(enabled)
+    
+    def set_color_picker(self, color_picker=None):
+        if color_picker != None:
+            cmds.button(self.button, e=True, c = lambda x: self.set_color_pick_value())
+            self.set_color_pick_value()
+    def set_color_pick_value(self):
+        cmds.colorIndexSliderGrp(self.color_index, e=True, value=self.color_picker.get_value() + 1)
+    #changing things on text_field
+    def set_vis(self, visibility):
+        cmds.colorIndexSliderGrp(self.color_index, e=True, visible=visibility)
+    def editable(self, edit):
+        cmds.colorIndexSliderGrp(self.color_index, e=True, en=edit)
+    #getting information from class
+    def get_name(self):
+        return self.layout
+    def get_value(self):
+        return cmds.colorIndexSliderGrp(self.color_index, q=True, v=True)-1
+
 class select_text_field:
-    def __init__(self, parent, b_label, b_width=0, long_name=False):
+    def __init__(self, parent, b_label, b_width=0, tf_width=0, long_name=False):
         if b_width == 0:
             b_width = len(b_label * 8)
-        self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, b_width)], p=UI_helpers.get_UI_parent_string(parent))
+        if tf_width == 0:
+            tf_width =1000
+        self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, b_width), (2, tf_width)], p=UI_helpers.get_UI_parent_string(parent))
         self.button = cmds.button(l = b_label)
         self.tf = cmds.textField()
         cmds.button(self.button, e=True, c = lambda x: UI_helpers.load_sel(self.tf, long=long_name))
