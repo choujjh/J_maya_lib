@@ -62,13 +62,13 @@ class master_tool:
 
         #color stuff for things
         self.js_color_picker = components.color_picker(self.js_frame_col, horz_cells=12, width=self.width, height=65)
-        self.js_start_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "ik joint color", 100, 130, color_picker=self.js_color_picker)
+        self.js_ik_jnt_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "ik joint color", 100, 130, color_picker=self.js_color_picker)
         #   TODO put a radius in here
-        self.js_start_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "fk joint color", 100, 130, color_picker=self.js_color_picker)
+        self.js_fk_jnt_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "fk joint color", 100, 130, color_picker=self.js_color_picker)
         #   TODO put a radius in here
         components.separator(self.js_frame_col)
-        self.js_start_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "ik cntrl color", 100, 130, color_picker=self.js_color_picker)
-        self.js_start_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "fk cntrl color", 100, 130, color_picker=self.js_color_picker)
+        self.js_ik_cntrl_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "ik cntrl color", 100, 130, color_picker=self.js_color_picker)
+        self.js_fk_cntrl_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "fk cntrl color", 100, 130, color_picker=self.js_color_picker)
 
         
         self.js_cb = components.check_box(self.js_frame_col, 'selection')
