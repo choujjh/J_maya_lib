@@ -55,10 +55,17 @@ class master_tool:
         self.js_frame = frameworks.J_frameLayout(self.main_layout, self.width, 175, 'Joint_Setup')
         self.js_frame_col = frameworks.J_columnLayout(self.js_frame, self.width, 0)
 
-        #self.js_cb = components.check_box(self.js_frame_col, 'selection')
+        self.js_cb = components.check_box(self.js_frame_col, 'selection')
         self.js_start_jnt = components.select_text_field(self.js_frame_col, 'start joint', 100, 135, long_name=True)
         self.js_end_jnt = components.select_text_field(self.js_frame_col, 'end joint', 100, 135, long_name=True)
-        self.js_switch_jnt = components.select_text_field(self.js_frame_col, 'switch cntrl', 100, 135, long_name=True)
+        self.js_switch_cntrl = components.select_text_field(self.js_frame_col, 'switch cntrl', 100, 135, long_name=True)
+        self.js_cb.on_update(
+            on_function=lambda x: (self.js_start_jnt.editable(False),
+                self.js_end_jnt.editable(False),
+                self.js_switch_cntrl.editable(False)), 
+            off_function=lambda y: (self.js_start_jnt.editable(True),
+                self.js_end_jnt.editable(True),
+                self.js_switch_cntrl.editable(True)))
         self.js_ik_name = components.text_field(self.js_frame_col, 'ik name', 100, 135)
 
         components.button(self.js_frame_col, 'execute', lambda x: self.__joint_setup_function__())
@@ -68,16 +75,21 @@ class master_tool:
     
     def __joint_setup_function__(self):
         #change it so the function also has color on it
-        ik_info = joint_lib.joint_info('color', 0.3)
-        fk_info = joint_lib.joint_info('color', 0.7)
-        jnt_info = joint_lib.joint_info('color', 0.5)
+        ik_info = joint_lib.joint_info(radius=0.2)
+        fk_info = joint_lib.joint_info(radius=0.7)
+        jnt_info = joint_lib.joint_info(radius=0.5)
 
-        print(self.js_start_jnt.get_value()[0])
-        print(self.js_end_jnt.get_value()[0])
-        print(self.js_switch_jnt.get_value()[0])
-
-        joint_lib.setup_jnt_chain(self.js_start_jnt.get_value()[0], self.js_end_jnt.get_value()[0], 
-            self.js_ik_name.get_value(), self.js_switch_jnt.get_value()[0], ik_info, fk_info, jnt_info)
+        #getting info for function
+        start_jnt = self.js_start_jnt.get_value()[0]
+        end_jnt = self.js_end_jnt.get_value[0]
+        switch_cntrl = self.js_switch_cntrl.get_value[0]
+        if self.js_cb.get_value():
+            sel = cmds.ls(sl=True, long=True)
+            start_jnt = sel[0]
+            end_jnt = sel[1]
+            switch_cntrl = sel[2]
+        joint_lib.setup_jnt_chain(start_jnt, end_jnt, 
+            self.js_ik_name.get_value()[0], switch_cntrl, ik_info, fk_info, jnt_info)
 
     def __fk_frame__(self):
         self.fk_frame = frameworks.J_frameLayout(self.main_layout, self.width, 75, 'FK')
