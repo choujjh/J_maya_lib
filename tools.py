@@ -14,7 +14,7 @@ class master_tool:
         self.width = 245
 
         self.name = 'master_tool'
-        self.win = frameworks.J_window(None, self.width, 350, self.name)
+        self.win = frameworks.J_window(None, self.width, 430, self.name)
         self.scroll = frameworks.J_scrollLayout(self.win, self.width, 350)
         self.main_layout = frameworks.J_columnLayout(self.scroll, self.width, 350)
 
@@ -68,7 +68,7 @@ class master_tool:
                 self.js_switch_cntrl.editable(True)))
         self.js_ik_name = components.text_field(self.js_frame_col, 'ik name', 100, 135)
 
-        components.button(self.js_frame_col, 'execute', lambda x: self.__joint_setup_function__())
+        components.button(self.js_frame_col, 'build joint chain', lambda x: self.__joint_setup_function__())
 
         # self.info_color_picker = components.color_picker(self.js_frame_col, horz_cells=12, width=self.width, height=65)
         # self.js_color = components.button_color_index_slider(self.js_frame_col, "color", 100, 130, color_picker=self.info_color_picker)
@@ -81,8 +81,8 @@ class master_tool:
 
         #getting info for function
         start_jnt = self.js_start_jnt.get_value()[0]
-        end_jnt = self.js_end_jnt.get_value[0]
-        switch_cntrl = self.js_switch_cntrl.get_value[0]
+        end_jnt = self.js_end_jnt.get_value()[0]
+        switch_cntrl = self.js_switch_cntrl.get_value()[0]
         if self.js_cb.get_value():
             sel = cmds.ls(sl=True, long=True)
             start_jnt = sel[0]
@@ -106,7 +106,7 @@ class master_tool:
         self.options = ['rename', 'duplicate and rename', 'create offset group','connect with pattern', 'duplicate nodes']
         self.util_rc = components.radio_collection(self.util_frame_col, self.options)
         
-        components.button(self.util_frame_col, 'execute', lambda x: self.__utility_functions__())
+        components.button(self.util_frame_col, 'apply', lambda x: self.__utility_functions__())
         components.separator(self.util_frame_col)
         components.button(self.util_frame_col, 'duplicate set', lambda x: object_lib.nonunique_obj_set())
     def __utility_functions__(self):
