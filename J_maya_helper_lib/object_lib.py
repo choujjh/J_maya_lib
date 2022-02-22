@@ -89,7 +89,7 @@ def add_attributes(objects, attr, category = None):
             else:
                 cmds.error('{} type not supported'.format(a.type))
 
-def create_fk_cntrl(objects, hierarchy=True, constraint = True, pre='anim', post='', custom=('','')):
+def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=True, constraint = True):
     objects = helpers.turn_to_list(objects)
     if hierarchy:
         objects = reverse_hierarchy(objects)
