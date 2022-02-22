@@ -91,8 +91,8 @@ class J_frameLayout(J_layout):
         cmds.frameLayout(super().get_name(), e=True, mw=5, mh=5)
         self.collapsable = collapsable
         if redim:
-            cmds.frameLayout(super(J_frameLayout, self).get_name(), e=True, pcc = lambda: super(J_frameLayout, self).redim_hierarchy_layout(False))
-            cmds.frameLayout(super(J_frameLayout, self).get_name(), e=True, pec = lambda: super(J_frameLayout, self).redim_hierarchy_layout(True))
+            cmds.frameLayout(super(J_frameLayout, self).get_name(), e=True, cc = lambda: super(J_frameLayout, self).redim_hierarchy_layout(False))
+            cmds.frameLayout(super(J_frameLayout, self).get_name(), e=True, ec = lambda: super(J_frameLayout, self).redim_hierarchy_layout(True))
     def redim_layout(self, expand=True, width=0, height=0):
         if self.collapsable:
             if expand:
@@ -108,6 +108,7 @@ class J_frameLayout(J_layout):
                 super(J_frameLayout, self).redim_hierarchy_layout(True)
             else:
                 super(J_frameLayout, self).redim_hierarchy_layout(False)
+
         
     
 
@@ -115,7 +116,7 @@ class J_columnLayout(J_layout):
     def __init__(self, parent, width, height, adj=True):
         super().__init__(parent, width, height)
         super().set_name(cmds.columnLayout(p=UI_helpers.get_UI_parent_string(parent), adj=adj, w=width))
-        cmds.columnLayout(super().get_name(), e=True, )
+        cmds.columnLayout(super().get_name(), e=True)
     def redim_layout(self, expand=True, width=0, height=0):
         pass
     def display_state(self, enabled, visible):
@@ -126,12 +127,26 @@ class J_rowLayout(J_layout):
     def __init__(self, parent, width, height):
         super().__init__(parent, width, height)
         super().set_name(cmds.rowLayout(p=UI_helpers.get_UI_parent_string(parent), w=width))
-        cmds.rowLayout(super().get_name(), e=True, )
+        cmds.rowLayout(super().get_name(), e=True)
     def redim_layout(self, expand=True, width=0, height=0):
         pass
     def display_state(self, enabled, visible):
         cmds.rowLayout(super().get_name(), e=True, en=enabled, vis=visible)
 
+class J_scrollLayout(J_layout):
+    def __init__(self, parent, width, height):
+        super().__init__(parent, width, height)
+        super().set_name(cmds.scrollLayout(p=UI_helpers.get_UI_parent_string(parent), w=width))
+        cmds.scrollLayout(super().get_name(), e=True, )
+    def redim_layout(self, expand=True, width=0, height=0):
+        pass
+    def display_state(self, enabled, visible):
+        cmds.scrollLayout(super().get_name(), e=True, en=enabled, vis=visible)
+
+#rowcolumnlayout
+#scrolllayout
+
+#dock Control
         
     
         

@@ -130,3 +130,32 @@ class check_box:
         return self.cb
     def get_value(self):
         return cmds.checkBox(self.cb, q=True, v=True)
+
+class button:
+    def __init__(self, parent, label, function):
+        self.cb = cmds.button(label=label, p=UI_helpers.get_UI_parent_string(parent))
+        self.on_press(function)
+    def set_vis(self, visibility):
+        cmds.button(self.cb, e=True, visible=visibility)
+    def editable(self, edit):
+        cmds.button(self.cb, e=True, ed=edit)
+    def on_press(self, function=None):
+        if function != None:
+            cmds.button(self.cb, e=True, command=function)
+
+    #getting information from class
+    def get_name(self):
+        return self.cb
+    def get_value(self):
+        pass
+
+class separator:
+    def __init__(self, parent):
+        self.name = cmds.separator(p=UI_helpers.get_UI_parent_string(parent))
+    #getting information from class
+    def get_name(self):
+        return self.name
+    def get_value(self):
+        pass
+
+#button
