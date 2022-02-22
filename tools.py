@@ -41,24 +41,43 @@ class master_tool:
             'custom': custom
         }
     def __info_frame__(self):
-        self.info_frame_info = frameworks.J_frameLayout(self.main_layout, self.width, 160, 'Info', collapsable=False)
+        self.info_frame_info = frameworks.J_frameLayout(self.main_layout, self.width, 165, 'Info', collapsable=False)
         self.info_frame_info_col = frameworks.J_columnLayout(self.info_frame_info, self.width, 0)
-        self.info_cb = components.check_box(self.info_frame_info_col, 'selection')
+
+        #check box
+        self.info_cb = components.check_box(self.info_frame_info_col, 'selection', value=True)
+        #object selection box
         self.info_sel = components.select_text_field(self.info_frame_info_col, 'object(s)', 100, 135)
+        self.info_sel.editable(False)
         self.info_cb.on_update(on_function=lambda x: self.info_sel.editable(False), off_function=lambda y: self.info_sel.editable(True))
+
         self.info_pre = components.text_field(self.info_frame_info_col, 'pre', 100, 135)
         self.info_replace = components.text_field(self.info_frame_info_col, 'replace', 100, 135)
         self.info_with = components.text_field(self.info_frame_info_col, 'with', 100, 135)
         self.info_post = components.text_field(self.info_frame_info_col, 'post', 100, 135)
 
     def __joint_setup_frame(self):
-        self.js_frame = frameworks.J_frameLayout(self.main_layout, self.width, 175, 'Joint_Setup')
+        self.js_frame = frameworks.J_frameLayout(self.main_layout, self.width, 340, 'Joint_Setup')
         self.js_frame_col = frameworks.J_columnLayout(self.js_frame, self.width, 0)
 
+        #color stuff for things
+        self.js_color_picker = components.color_picker(self.js_frame_col, horz_cells=12, width=self.width, height=65)
+        self.js_start_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "ik joint color", 100, 130, color_picker=self.js_color_picker)
+        #   TODO put a radius in here
+        self.js_start_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "fk joint color", 100, 130, color_picker=self.js_color_picker)
+        #   TODO put a radius in here
+        components.separator(self.js_frame_col)
+        self.js_start_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "ik cntrl color", 100, 130, color_picker=self.js_color_picker)
+        self.js_start_color = self.js_color = components.button_color_index_slider(self.js_frame_col, "fk cntrl color", 100, 130, color_picker=self.js_color_picker)
+
+        
         self.js_cb = components.check_box(self.js_frame_col, 'selection')
+        #selection joint frame
         self.js_start_jnt = components.select_text_field(self.js_frame_col, 'start joint', 100, 135, long_name=True)
         self.js_end_jnt = components.select_text_field(self.js_frame_col, 'end joint', 100, 135, long_name=True)
         self.js_switch_cntrl = components.select_text_field(self.js_frame_col, 'switch cntrl', 100, 135, long_name=True)
+
+        #checkbox update
         self.js_cb.on_update(
             on_function=lambda x: (self.js_start_jnt.editable(False),
                 self.js_end_jnt.editable(False),
@@ -70,7 +89,7 @@ class master_tool:
 
         components.button(self.js_frame_col, 'build joint chain', lambda x: self.__joint_setup_function__())
 
-        # self.info_color_picker = components.color_picker(self.js_frame_col, horz_cells=12, width=self.width, height=65)
+        
         # self.js_color = components.button_color_index_slider(self.js_frame_col, "color", 100, 130, color_picker=self.info_color_picker)
     
     def __joint_setup_function__(self):

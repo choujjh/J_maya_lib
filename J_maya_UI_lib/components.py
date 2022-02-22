@@ -146,8 +146,8 @@ class color_picker:
         return min(cmds.palettePort(self.name, q=True, scc=True) + 1, 31)
     
 class check_box:
-    def __init__(self, parent, label):
-        self.cb = cmds.checkBox(label=label, p=UI_helpers.get_UI_parent_string(parent))
+    def __init__(self, parent, label, value=False):
+        self.cb = cmds.checkBox(label=label, p=UI_helpers.get_UI_parent_string(parent),value=value)
         
     def set_vis(self, visibility):
         cmds.checkBox(self.cb, e=True, visible=visibility)
