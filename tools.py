@@ -80,14 +80,18 @@ class master_tool:
         jnt_info = joint_lib.joint_info(radius=0.5)
 
         #getting info for function
-        start_jnt = self.js_start_jnt.get_value()[0]
-        end_jnt = self.js_end_jnt.get_value()[0]
-        switch_cntrl = self.js_switch_cntrl.get_value()[0]
+        start_jnt = 0
+        end_jnt = 0
+        switch_cntrl = 0
         if self.js_cb.get_value():
             sel = cmds.ls(sl=True, long=True)
             start_jnt = sel[0]
             end_jnt = sel[1]
             switch_cntrl = sel[2]
+        else:
+            start_jnt = self.js_start_jnt.get_value()[0]
+            end_jnt = self.js_end_jnt.get_value()[0]
+            switch_cntrl = self.js_switch_cntrl.get_value()[0]
         joint_lib.setup_jnt_chain(start_jnt, end_jnt, 
             self.js_ik_name.get_value()[0], switch_cntrl, ik_info, fk_info, jnt_info)
 
