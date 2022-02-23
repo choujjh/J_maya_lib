@@ -89,7 +89,7 @@ def add_attributes(objects, attr, category = None):
             else:
                 cmds.error('{} type not supported'.format(a.type))
 
-def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=True, constraint = True):
+def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=True, constraint = True, color=None):
     objects = helpers.turn_to_list(objects)
     if hierarchy:
         objects = reverse_hierarchy(objects)
@@ -117,6 +117,8 @@ def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=Tru
                 child_grp = create_fk_cntrl(s)
                 if len(child_grp) > 0:
                     cmds.parent(child_grp[0], circle_curve)
+    if color != None:
+        color_object(circle_curve_grps, color, hierarchy=hierarchy)
     return circle_curve_grps
 
 def anim_circle(scale, rotateAngle=[0, 0, 0], center=[0, 0, 0], n='nurbsCircle', degree=3, sections=8):
@@ -174,9 +176,6 @@ def get_connections(objects):
             destinations = [x for x in destinations if x in short_objs]
         else:
             destinations = []
-        print('obj: {}'.format(obj))
-        print('source: {}'.format(sources))
-        print('destination: {}'.format(destinations))
 
         # separating out connections to have the right ordering
         conn_driver = cmds.listConnections(obj, c=True, p=True)[::2]
@@ -257,23 +256,24 @@ def dupl_node_connections(objects, pre='', post='', custom=('', '')):
     connect_new_names(objects, pre, post, custom)
 
 #note only works with transform's shapes and joints
-def color_object(objects, color, index=True):
+def color_object(objects, color, hierarchy=False, index=True, reset=False):
+    cmds.select(objects, hi=hierarchy)
+    objects = cmds.ls(sl=True, long=True)
     objects = filter_node_types(objects, ['transform', 'joint'], remove=False)
 
     for obj in objects:
         shapes = cmds.listRelatives(obj, s=True)
-        if shapes == None:
-            cmds.setAttr('{}.overrideEnabled'.format(obj), True)
-            if index:
-                cmds.setAttr('{}.overrideRGBColors'.format(obj), 0)
-                cmds.setAttr('{}.overrideColor'.format(obj), color)
-            else:
-                pass
-        else:
+        if cmds.nodeType(obj) == 'joint':
+            set_color_attr(obj, color, index=index, reset=reset)
+        if shapes != None:
             for s in shapes:
-                cmds.setAttr('{}.overrideEnabled'.format(s), True)
-                if index:
-                    cmds.setAttr('{}.overrideRGBColors'.format(s), 0)
-                    cmds.setAttr('{}.overrideColor'.format(s), color)
-                else:
-                    pass
+                set_color_attr(s, color, index=index, reset=reset)
+def set_color_attr(object, color, index=True, reset=False):
+    cmds.setAttr('{}.overrideEnabled'.format(object), True)
+    if index:
+        cmds.setAttr('{}.overrideRGBColors'.format(object), 0)
+        cmds.setAttr('{}.overrideColor'.format(object), color)
+    if reset:
+        cmds.setAttr('{}.overrideEnabled'.format(object), False)
+        cmds.setAttr('{}.overrideRGBColors'.format(object), 0)
+        cmds.setAttr('{}.overrideColor'.format(object), 0)

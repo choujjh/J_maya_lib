@@ -54,7 +54,7 @@ def create_ind_ik_handles(joints, pre = '', post = 'Handle', custom = ('', ''), 
             ik_handles.append(cmds.ikHandle(n = handle, sj = j, ee = joint_dict[j][0], sol = 'ikSCsolver')[0])
     return ik_handles
 
-def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name):
+def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name, color=None):
     ik_name = helpers.string_manip(ik_name, post='_ik')
     #ik joint chain
     handle, effector = cmds.ikHandle( n = helpers.string_manip(ik_name, post = 'handle'), sj = ik_start_jnt, ee = ik_end_jnt, sol = 'ikRPsolver')
@@ -96,6 +96,8 @@ def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name):
 
     #get the pole value
     cmds.parent(setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle), ik_grp)
+    if color != None:
+        object_lib.color_object(ik_grp, color, hierarchy=True)
 
     #lock len attr
     cmds.setAttr('{}.ik_len'.format(anim_end), lock=True)
@@ -167,11 +169,12 @@ def make_annotation(point_to, point_from, name):
     cmds.makeIdentity(ann)
 
 #add an ik naming convention
-def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jnt_info):
+def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jnt_info, ik_cntrl_color, fk_cntrl_color):
 
     node_editor_nodes = []
     helpers.select_obj_hierarchy(start_jnt)
     set_radius(cmds.ls(sl=True, long=True), jnt_info.radius)
+
     #ik joints
     ik_start_jnt = object_lib.dupl_renamer(start_jnt, post = 'ik')[0]
     helpers.select_obj_hierarchy(ik_start_jnt)
@@ -179,7 +182,7 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     ik_end_jnt = helpers.string_manip(end_jnt, post = 'ik')
     #delete child after end joints
     cmds.delete(cmds.listRelatives(ik_end_jnt, c=True))
-
+    object_lib.color_object(ik_start_jnt, ik_info.color, hierarchy=True)
     
     #fk joints
     fk_start_jnt = object_lib.dupl_renamer(start_jnt, post = 'fk')[0]
@@ -188,10 +191,12 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     set_radius(cmds.ls(sl=True, long=True), fk_info.radius)
     #delete child after end joints
     cmds.delete(cmds.listRelatives(fk_end_jnt))
+    object_lib.color_object(fk_start_jnt, fk_info.color, hierarchy=True)
 
     #setup
-    setup_ik_chain(ik_start_jnt, ik_end_jnt, name)
-    object_lib.create_fk_cntrl(fk_start_jnt)
+    setup_ik_chain(ik_start_jnt, ik_end_jnt, name, color=ik_cntrl_color)
+    object_lib.create_fk_cntrl(fk_start_jnt, color=fk_cntrl_color)
+    object_lib.color_object(start_jnt, jnt_info.color, hierarchy=True)
 
     #connecting them together
     attr_list = [object_lib.attr_info('blend', 'float', default=0, min=0, max=1)]

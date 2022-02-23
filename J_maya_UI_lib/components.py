@@ -32,6 +32,25 @@ class text_field:
     def get_value(self):
         return cmds.textField(self.tf, q=True, text=True).split(', ')
 
+class float_field:
+    def __init__(self, parent, tx_label, tx_width=0, ff_width=0, enabled=True, value=0.0):
+        if tx_width == 0:
+            tx_width = len(tx_label * 8)
+        if ff_width == 0:
+            ff_width =1000
+        self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, tx_width), (2, ff_width)], p=UI_helpers.get_UI_parent_string(parent))
+        self.text = cmds.text(l = tx_label, p = self.layout)
+        self.float_field = cmds.floatField(value=value)
+        self.editable(enabled)
+
+    def editable(self, edit):
+        cmds.floatField(self.float_field, e=True, en=edit)
+    #getting information from class
+    def get_name(self):
+        return self.layout
+    def get_value(self):
+        return cmds.floatField(self.float_field, q=True, v=True)
+
 class button_color_index_slider:
     def __init__(self, parent, tx_label, tx_width=0, tf_width=0, color_picker=None, enabled=False):
         if tx_width == 0:
@@ -40,7 +59,7 @@ class button_color_index_slider:
             tf_width =1000
         self.color_picker = color_picker
         self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, tx_width), (2, tf_width)], p=UI_helpers.get_UI_parent_string(parent))
-        self.button = cmds.button(l = tx_label)
+        self.button = cmds.button(l = tx_label, p = self.layout)
         self.color_index = cmds.colorIndexSliderGrp( label="", adj = True, min=1, max=32, value=10)
         self.set_color_picker(color_picker)
         self.editable(enabled)
@@ -69,7 +88,7 @@ class select_text_field:
         if tf_width == 0:
             tf_width =1000
         self.layout = cmds.rowColumnLayout(nc = 2, columnWidth=[(1, b_width), (2, tf_width)], p=UI_helpers.get_UI_parent_string(parent))
-        self.button = cmds.button(l = b_label)
+        self.button = cmds.button(l = b_label, p=self.layout)
         self.tf = cmds.textField()
         cmds.button(self.button, e=True, c = lambda x: UI_helpers.load_sel(self.tf, long=long_name))
     #changing things on palette port
