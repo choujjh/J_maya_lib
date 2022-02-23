@@ -181,7 +181,8 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     set_radius(cmds.ls(sl=True, long=True), ik_info.radius)
     ik_end_jnt = helpers.string_manip(end_jnt, post = 'ik')
     #delete child after end joints
-    cmds.delete(cmds.listRelatives(ik_end_jnt, c=True))
+    if cmds.listRelatives(ik_end_jnt, c=True) != None:
+        cmds.delete(cmds.listRelatives(ik_end_jnt, c=True))
     object_lib.color_object(ik_start_jnt, ik_info.color, hierarchy=True)
     
     #fk joints
@@ -190,7 +191,8 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     helpers.select_obj_hierarchy(fk_start_jnt)
     set_radius(cmds.ls(sl=True, long=True), fk_info.radius)
     #delete child after end joints
-    cmds.delete(cmds.listRelatives(fk_end_jnt))
+    if cmds.listRelatives(fk_end_jnt, c=True) != None:
+        cmds.delete(cmds.listRelatives(fk_end_jnt, c=True))
     object_lib.color_object(fk_start_jnt, fk_info.color, hierarchy=True)
 
     #setup
