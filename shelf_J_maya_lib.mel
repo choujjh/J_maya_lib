@@ -1,6 +1,5 @@
 //put this file in maya/year/prefs/shelves
 
-
 global proc shelf_J_maya_lib () {
     global string $gBuffStr;
     global string $gBuffStr0;
