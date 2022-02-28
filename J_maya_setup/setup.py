@@ -22,5 +22,5 @@ class J_maya_lib_setup():
                 else:
                     print('files are the same, no changes made')
 
-# shutil.move(, )
+# TODO: install the shelf tools
 #cmds.quit()
