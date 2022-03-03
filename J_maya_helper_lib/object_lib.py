@@ -94,6 +94,7 @@ def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=Tru
     if hierarchy:
         objects = reverse_hierarchy(objects)
     circle_curve_grps = []
+    
     for o in objects:
         #initial object
         circle_curve = cmds.circle(nr=(1, 0, 0), n=helpers.string_manip(o, pre=pre, post=post, custom=custom))[0]
@@ -102,9 +103,9 @@ def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=Tru
         off_grp = create_parent_grp(circle_curve)
         circle_curve_grps.append(off_grp[0])
         if constraint:
-            cmds.parentConstraint(circle_curve, o)
+            cmds.parentConstraint(helpers.split_obj_name(circle_curve)[1], o)
         else:
-            cmds.pointConstraint(circle_curve, o)
+            cmds.pointConstraint(helpers.split_obj_name(circle_curve)[1], o)
             cmds.connectAttr('{}.rotate'.format(circle_curve), '{}.rotate'.format(o))
         
         #get the hierarchy
