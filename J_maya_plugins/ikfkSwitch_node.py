@@ -38,7 +38,7 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
         ikfkSwitchNode = self.name()
         dataHandleInSwitch = dataBlock.inputValue(ikfkSwitch.inSwitch)
         dataHandleOutSwitch = dataBlock.outputValue(ikfkSwitch.outSwitch)
-        switchVal = dataHandleInSwitch.asInt()
+        switchVal = cmds.getAttr(ikfkSwitchNode + '.inSwitch') #dataHandleInSwitch.asInt()
 
         start = {'fk':cmds.listConnections('{}.fkStart'.format(ikfkSwitchNode)), 
                 'ik':cmds.listConnections('{}.ikStart'.format(ikfkSwitchNode))}
@@ -63,23 +63,23 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
         
         if not hasWarning:
             # fk
+            print("switch:", switchVal)
             if switchVal == 0:
-                print('to fk')
                 cmds.matchTransform(start['fk'], start['ik'])
                 if midA['fk'] != None and midA['ik'] != None:
                     cmds.matchTransform(midA['fk'], midA['ik'])
                 if midB['fk'] != None and midB['ik'] != None:
                     cmds.matchTransform(midB['fk'], midB['ik'])
                 cmds.matchTransform(end['fk'], end['ik'])
+                # dataHandleOutSwitch.setInt(switchVal)
             # ik
             elif switchVal == 1:
-                print('to ik')
                 cmds.matchTransform(start['ik'], start['fk'])
                 cmds.matchTransform(end['ik'], end['fk'])
                 cmds.matchTransform(pole['ik'], pole['fk'])
+                # dataHandleOutSwitch.setInt(switchVal)
             # reset
             elif switchVal == 2:
-                print('reset')
                 resetList = [start['ik'], start['fk'], 
                             midA['fk'], midB['fk'],
                             end['ik'], end['fk'], 
@@ -87,8 +87,10 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
                 for obj in resetList:
                     if obj != None:
                         cmds.xform(obj, t=(0, 0, 0), s=(1, 1, 1), ro=(0, 0, 0))
+                # dataHandleInSwitch.setInt(0)
+            dataHandleOutSwitch.setInt(switchVal)
 
-        dataHandleOutSwitch.setInt(switchVal)
+        # dataHandleOutSwitch.setInt(switchVal)
 
 def nodeCreator():
     return OpenMayaMPx.asMPxPtr(ikfkSwitch())
