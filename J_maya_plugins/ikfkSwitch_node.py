@@ -10,17 +10,45 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
 
     inSwitch = OpenMaya.MObject()
 
-    inFKStart = OpenMaya.MObject()
-    inFKMidA = OpenMaya.MObject()
-    inFKMidB = OpenMaya.MObject()
-    inFKEnd = OpenMaya.MObject()
-    inFKPole = OpenMaya.MObject()
+    # fk blocks
+    inFKBlock = OpenMaya.MObject()
+    inFKStartBlock = OpenMaya.MObject()
+    inFKMidABlock = OpenMaya.MObject()
+    inFKMidBBlock = OpenMaya.MObject()
+    inFKEndBlock = OpenMaya.MObject()
+    inFKPoleBlock = OpenMaya.MObject()
 
+    # fk messages
+    inFKStart = OpenMaya.MObject()
+    inFKStartEff = OpenMaya.MObject()
+    inFKMidA = OpenMaya.MObject()
+    inFKMidAEff = OpenMaya.MObject()
+    inFKMidB = OpenMaya.MObject()
+    inFKMidBEff = OpenMaya.MObject()
+    inFKEnd = OpenMaya.MObject()
+    inFKEndEff = OpenMaya.MObject()
+    inFKPole = OpenMaya.MObject()
+    inFKPoleEff = OpenMaya.MObject()
+
+    # ik blocks
+    inIKBlock = OpenMaya.MObject()
+    inIKStartBlock = OpenMaya.MObject()
+    inIKMidABlock = OpenMaya.MObject()
+    inIKMidBBlock = OpenMaya.MObject()
+    inIKEndBlock = OpenMaya.MObject()
+    inIKPoleBlock = OpenMaya.MObject()
+
+    # ik messages
     inIKStart = OpenMaya.MObject()
+    inIKStartEff = OpenMaya.MObject()
     inIKMidA = OpenMaya.MObject()
+    inIKMidAEff = OpenMaya.MObject()
     inIKMidB = OpenMaya.MObject()
+    inIKMidBEff = OpenMaya.MObject()
     inIKEnd = OpenMaya.MObject()
+    inIKEndEff = OpenMaya.MObject()
     inIKPole = OpenMaya.MObject()
+    inIKPoleEff = OpenMaya.MObject()
 
     outSwitch = OpenMaya.MObject()
 
@@ -63,7 +91,7 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
         
         if not hasWarning:
             # fk
-            print("switch:", switchVal)
+            print('switch:', switchVal)
             if switchVal == 0:
                 cmds.matchTransform(start['fk'], start['ik'])
                 if midA['fk'] != None and midA['ik'] != None:
@@ -118,57 +146,154 @@ def nodeInitializer():
     mFnEnumAttr.setWritable(1)
     mFnEnumAttr.setStorable(1)
     mFnEnumAttr.setKeyable(1)
+    ikfkSwitch.addAttribute(ikfkSwitch.inSwitch)
 
-
+    #creating fk plugs
     ikfkSwitch.inFKStart = createMessageAttribute(mFnMessageAttr, 'fkStart', 'fkS')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKStart)
+    ikfkSwitch.inFKStartEff = createMessageAttribute(mFnMessageAttr, 'fkStartEffector', 'fkSEff')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKStartEff)
 
-    ikfkSwitch.inFKMidA =  mFnMessageAttr.create('fkMidA', 'fkMA')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
-    ikfkSwitch.inFKMidB =  mFnMessageAttr.create('fkMidB', 'fkMB')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
-    ikfkSwitch.inFKEnd =  mFnMessageAttr.create('fkEnd', 'fkE')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
-    ikfkSwitch.inFKPole =  mFnMessageAttr.create('fkPole', 'fkP')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
 
-    ikfkSwitch.inIKStart =  mFnMessageAttr.create('ikStart', 'ikS')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
-    ikfkSwitch.inIKMidA =  mFnMessageAttr.create('ikMidA', 'ikMA')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
-    ikfkSwitch.inIKMidB =  mFnMessageAttr.create('ikMidB', 'ikMB')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
-    ikfkSwitch.inIKEnd =  mFnMessageAttr.create('ikEnd', 'ikE')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
-    ikfkSwitch.inIKPole =  mFnMessageAttr.create('ikPole', 'ikP')
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
+    ikfkSwitch.inFKMidA = createMessageAttribute(mFnMessageAttr, 'fkMidA', 'fkMA')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKMidA)
+    ikfkSwitch.inFKMidAEff = createMessageAttribute(mFnMessageAttr, 'fkMidAEffector', 'fkMAEFF')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKMidAEff)
 
+    ikfkSwitch.inFKMidB = createMessageAttribute(mFnMessageAttr, 'fkMidB', 'fkMB')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKMidB)
+    ikfkSwitch.inFKMidBEff = createMessageAttribute(mFnMessageAttr, 'fkMidBEffector', 'fkMBEFF')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKMidBEff)
+
+    ikfkSwitch.inFKEnd = createMessageAttribute(mFnMessageAttr, 'fkEnd', 'fkE')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKEnd)
+    ikfkSwitch.inFKEndEff = createMessageAttribute(mFnMessageAttr, 'fkEndEffector', 'fkEEff')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKEndEff)
+
+    ikfkSwitch.inFKPole = createMessageAttribute(mFnMessageAttr, 'fkPole', 'fkP')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKPole)
+    ikfkSwitch.inFKPoleEff = createMessageAttribute(mFnMessageAttr, 'fkPoleEffector', 'fkPEff')
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKPoleEff)
+
+    #creating fk blocks
+    ikfkSwitch.inFKStartBlock = mFnCompoundAttr.create('fkStartBlock', 'fkStartBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKStart)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKStartEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKStartBlock)
+
+    ikfkSwitch.inFKMidABlock = mFnCompoundAttr.create('fkMidABlock', 'fkMidABlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKMidA)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKMidAEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKMidABlock)
+
+    ikfkSwitch.inFKMidBBlock = mFnCompoundAttr.create('fkMidBBlock', 'fkMidBBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKMidB)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKMidBEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKMidBBlock)
+    
+    ikfkSwitch.inFKEndBlock = mFnCompoundAttr.create('fkEndBlock', 'fkEndBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKEnd)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKEndEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKEndBlock)
+
+    ikfkSwitch.inFKPoleBlock = mFnCompoundAttr.create('fkPoleBlock', 'fkPoleBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKPole)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKPoleEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKPoleBlock)
+
+    ikfkSwitch.inFKBlock = mFnCompoundAttr.create('fkBlock', 'fkBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKStartBlock)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKMidABlock)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKMidBBlock)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKEndBlock)
+    mFnCompoundAttr.addChild(ikfkSwitch.inFKPoleBlock)
+    ikfkSwitch.addAttribute(ikfkSwitch.inFKBlock)
+
+    #creating ik plugs
+    ikfkSwitch.inIKStart = createMessageAttribute(mFnMessageAttr, 'ikStart', 'ikS')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKStart)
+    ikfkSwitch.inIKStartEff = createMessageAttribute(mFnMessageAttr, 'ikStartEffector', 'ikSEff')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKStartEff)
+
+    ikfkSwitch.inIKMidA = createMessageAttribute(mFnMessageAttr, 'ikMidA', 'ikMA')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidA)
+    ikfkSwitch.inIKMidAEff = createMessageAttribute(mFnMessageAttr, 'ikMidAEffector', 'ikMAEff')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidAEff)
+
+    ikfkSwitch.inIKMidB = createMessageAttribute(mFnMessageAttr, 'ikMidB', 'ikMB')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidB)
+    ikfkSwitch.inIKMidBEff = createMessageAttribute(mFnMessageAttr, 'ikMidBEffector', 'ikMBEff')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidBEff)
+
+    ikfkSwitch.inIKEnd = createMessageAttribute(mFnMessageAttr, 'ikEnd', 'ikE')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKEnd)
+    ikfkSwitch.inIKEndEff = createMessageAttribute(mFnMessageAttr, 'ikEndEffector', 'ikEEff')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKEndEff)
+
+    ikfkSwitch.inIKPole = createMessageAttribute(mFnMessageAttr, 'ikPole', 'ikP')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKPole)
+    ikfkSwitch.inIKPoleEff = createMessageAttribute(mFnMessageAttr, 'ikPoleEffector', 'ikPEff')
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKPoleEff)
+
+    #creating ik blocks
+    ikfkSwitch.inIKStartBlock = mFnCompoundAttr.create('ikStartBlock', 'ikStartBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKStart)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKStartEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKStartBlock)
+
+    ikfkSwitch.inIKMidABlock = mFnCompoundAttr.create('ikMidABlock', 'ikMidABlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidA)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidAEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidABlock)
+
+    ikfkSwitch.inIKMidBBlock = mFnCompoundAttr.create('ikMidBBlock', 'ikMidBBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidB)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidBEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidBBlock)
+
+    ikfkSwitch.inIKEndBlock = mFnCompoundAttr.create('ikEndBlock', 'ikEndBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKEnd)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKEndEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKEndBlock)
+
+    ikfkSwitch.inIKPoleBlock = mFnCompoundAttr.create('ikPoleBlock', 'ikPoleBlck')
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKPole)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKPoleEff)
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKPoleBlock)
+
+    ikfkSwitch.inIKBlock = mFnCompoundAttr.create('ikBlock', 'ikBlck')
+    # mFnCompoundAttr.setStorable(1)
+    # mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKStartBlock)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidABlock)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidBBlock)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKEndBlock)
+    mFnCompoundAttr.addChild(ikfkSwitch.inIKPoleBlock)
+    ikfkSwitch.addAttribute(ikfkSwitch.inIKBlock)
+
+    #final switch
     ikfkSwitch.outSwitch = mFnEnumAttr.create('outSwitch', 'outS')
     mFnEnumAttr.addField('FK', 0)
     mFnEnumAttr.addField('IK', 1)
@@ -177,22 +302,6 @@ def nodeInitializer():
     mFnEnumAttr.setWritable(0)
     mFnEnumAttr.setStorable(0)
     mFnEnumAttr.setKeyable(0)
-
-    # 3. attaching the attributes to the Node
-    ikfkSwitch.addAttribute(ikfkSwitch.inSwitch)
-
-    ikfkSwitch.addAttribute(ikfkSwitch.inFKStart)
-    ikfkSwitch.addAttribute(ikfkSwitch.inFKMidA)
-    ikfkSwitch.addAttribute(ikfkSwitch.inFKMidB)
-    ikfkSwitch.addAttribute(ikfkSwitch.inFKEnd)
-    ikfkSwitch.addAttribute(ikfkSwitch.inFKPole)
-
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKStart)
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidA)
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidB)
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKEnd)
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKPole)
-
     ikfkSwitch.addAttribute(ikfkSwitch.outSwitch)
 
     # 4. designing circuitry
@@ -208,6 +317,6 @@ def initializePlugin(mobject):
 def uninitializePlugin(mobject):
     mplugin = OpenMayaMPx.MFnPlugin(mobject)
     try:
-        mplugin.deregisterNode(nodeName, nodeId, nodeCreator, nodeInitializer)
+        mplugin.deregisterNode(nodeName, nodeId)
     except:
         sys.stderr.write('Failed to unregister command %s\n' % nodeName)
