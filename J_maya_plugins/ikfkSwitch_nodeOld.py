@@ -95,18 +95,10 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
 def nodeCreator():
     return OpenMayaMPx.asMPxPtr(ikfkSwitch())
 
-def createMessageAttribute(mFnMessageAttr, longName, shortName):
-    saveTo =  mFnMessageAttr.create(longName, shortName)
-    mFnMessageAttr.setReadable(1)
-    mFnMessageAttr.setWritable(1)
-    mFnMessageAttr.setStorable(1)
-    mFnMessageAttr.setKeyable(1)
-    return saveTo
 def nodeInitializer():
     # 1. create a function set
     mFnEnumAttr = OpenMaya.MFnEnumAttribute()
     mFnMessageAttr = OpenMaya.MFnMessageAttribute()
-    mFnCompoundAttr = OpenMaya.MFnCompoundAttribute()
 
     # 2. create the attributes
     ikfkSwitch.inSwitch = mFnEnumAttr.create('inSwitch', 'inS')
@@ -119,8 +111,11 @@ def nodeInitializer():
     mFnEnumAttr.setStorable(1)
     mFnEnumAttr.setKeyable(1)
 
-
-    ikfkSwitch.inFKStart = createMessageAttribute(mFnMessageAttr, 'fkStart', 'fkS')
+    ikfkSwitch.inFKStart =  mFnMessageAttr.create('fkStart', 'fkS')
+    mFnMessageAttr.setReadable(1)
+    mFnMessageAttr.setWritable(1)
+    mFnMessageAttr.setStorable(1)
+    mFnMessageAttr.setKeyable(1)
 
     ikfkSwitch.inFKMidA =  mFnMessageAttr.create('fkMidA', 'fkMA')
     mFnMessageAttr.setReadable(1)
