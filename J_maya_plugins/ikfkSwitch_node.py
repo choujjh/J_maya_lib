@@ -16,7 +16,6 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
     inFKMidABlock = OpenMaya.MObject()
     inFKMidBBlock = OpenMaya.MObject()
     inFKEndBlock = OpenMaya.MObject()
-    inFKPoleBlock = OpenMaya.MObject()
 
     # fk messages
     inFKStart = OpenMaya.MObject()
@@ -27,30 +26,42 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
     inFKMidBEff = OpenMaya.MObject()
     inFKEnd = OpenMaya.MObject()
     inFKEndEff = OpenMaya.MObject()
-    inFKPole = OpenMaya.MObject()
-    inFKPoleEff = OpenMaya.MObject()
 
     # ik blocks
     inIKBlock = OpenMaya.MObject()
     inIKStartBlock = OpenMaya.MObject()
-    inIKMidABlock = OpenMaya.MObject()
-    inIKMidBBlock = OpenMaya.MObject()
     inIKEndBlock = OpenMaya.MObject()
     inIKPoleBlock = OpenMaya.MObject()
 
     # ik messages
     inIKStart = OpenMaya.MObject()
     inIKStartEff = OpenMaya.MObject()
-    inIKMidA = OpenMaya.MObject()
-    inIKMidAEff = OpenMaya.MObject()
-    inIKMidB = OpenMaya.MObject()
-    inIKMidBEff = OpenMaya.MObject()
     inIKEnd = OpenMaya.MObject()
     inIKEndEff = OpenMaya.MObject()
     inIKPole = OpenMaya.MObject()
     inIKPoleEff = OpenMaya.MObject()
 
     outSwitch = OpenMaya.MObject()
+
+    enumFK = 0
+    enumIK = 1
+    enumReset = 2
+    fk_attributes = [
+        ('.fkBlock.fkStartBlock.fkStart', ['.fkBlock.fkStartBlock.fkStartEffector', '.ikBlock.ikStartBlock.ikStart']),
+        ('.fkBlock.fkMidABlock.fkMidA', ['.fkBlock.fkMidABlock.fkMidAEffector', '.ikBlock.ikMidABlock.ikMidA']),
+        ('.fkBlock.fkMidBBlock.fkMidB', ['.fkBlock.fkMidBBlock.fkMidBEffector', '.ikBlock.ikMidBBlock.ikMidB']),
+        ('.fkBlock.fkEndBlock.fkEnd', ['.fkBlock.fkEndBlock.fkEndEffector', '.ikBlock.ikEndBlock.ikEnd']),
+    ]
+
+    ik_attributes = [
+        ('.ikBlock.ikStartBlock.ikStart', ['.ikBlock.ikStartBlock.ikStartEffector', '.fkBlock.fkStartBlock.fkStart']),
+        ('.ikBlock.ikEndBlock.ikEnd', ['.ikBlock.ikEndBlock.ikEndEffector', '.fkBlock.fkEndBlock.fkEnd']),
+        ('.ikBlock.ikPoleBlock.ikPole', ['.ikBlock.ikPoleBlock.ikPoleEffector']),
+    ]
+    reset_attributes = [
+        '.fkBlock.fkStartBlock.fkStart', '.fkBlock.fkMidABlock.fkMidA', '.fkBlock.fkMidBBlock.fkMidB', '.fkBlock.fkEndBlock.fkEnd',
+        '.ikBlock.ikStartBlock.ikStart', '.ikBlock.ikEndBlock.ikEnd', '.ikBlock.ikPoleBlock.ikPole'
+    ]
 
     def __init__(self):
         OpenMayaMPx.MPxNode.__init__(self)
@@ -63,62 +74,79 @@ class ikfkSwitch(OpenMayaMPx.MPxNode):
         else:
             return OpenMaya.kUnknownParameter
     def switchChain(self, dataBlock):
-        ikfkSwitchNode = self.name()
         dataHandleInSwitch = dataBlock.inputValue(ikfkSwitch.inSwitch)
         dataHandleOutSwitch = dataBlock.outputValue(ikfkSwitch.outSwitch)
-        switchVal = cmds.getAttr(ikfkSwitchNode + '.inSwitch') #dataHandleInSwitch.asInt()
 
-        start = {'fk':cmds.listConnections('{}.fkStart'.format(ikfkSwitchNode)), 
-                'ik':cmds.listConnections('{}.ikStart'.format(ikfkSwitchNode))}
-        midA = {'fk':cmds.listConnections('{}.fkMidA'.format(ikfkSwitchNode)), 
-                'ik':cmds.listConnections('{}.ikMidA'.format(ikfkSwitchNode))}
-        midB = {'fk':cmds.listConnections('{}.fkMidB'.format(ikfkSwitchNode)), 
-                'ik':cmds.listConnections('{}.ikMidB'.format(ikfkSwitchNode))}
-        end = {'fk':cmds.listConnections('{}.fkEnd'.format(ikfkSwitchNode)), 
-                'ik':cmds.listConnections('{}.ikEnd'.format(ikfkSwitchNode))}
-        pole = {'fk':cmds.listConnections('{}.fkPole'.format(ikfkSwitchNode)), 
-                'ik':cmds.listConnections('{}.ikPole'.format(ikfkSwitchNode))}
-        hasWarning = False
-        if start['ik'] == None or start['fk'] == None:
-            cmds.warning('{} start fk/ik doesn\'t have connections'.format(ikfkSwitchNode))
-            hasWarning = True
-        elif end['ik'] == None or end['fk'] == None:
-            cmds.warning('{} end fk/ik doesn\'t have connections'.format(ikfkSwitchNode))
-            hasWarning = True
-        elif pole['ik'] == None or pole['fk'] == None:
-            cmds.warning('{} pole fk/ik doesn\'t have connections'.format(ikfkSwitchNode))
-            hasWarning = True
-        
-        if not hasWarning:
-            # fk
-            print('switch:', switchVal)
-            if switchVal == 0:
-                cmds.matchTransform(start['fk'], start['ik'])
-                if midA['fk'] != None and midA['ik'] != None:
-                    cmds.matchTransform(midA['fk'], midA['ik'])
-                if midB['fk'] != None and midB['ik'] != None:
-                    cmds.matchTransform(midB['fk'], midB['ik'])
-                cmds.matchTransform(end['fk'], end['ik'])
-                # dataHandleOutSwitch.setInt(switchVal)
-            # ik
-            elif switchVal == 1:
-                cmds.matchTransform(start['ik'], start['fk'])
-                cmds.matchTransform(end['ik'], end['fk'])
-                cmds.matchTransform(pole['ik'], pole['fk'])
-                # dataHandleOutSwitch.setInt(switchVal)
-            # reset
-            elif switchVal == 2:
-                resetList = [start['ik'], start['fk'], 
-                            midA['fk'], midB['fk'],
-                            end['ik'], end['fk'], 
-                            pole['ik']]
-                for obj in resetList:
-                    if obj != None:
-                        cmds.xform(obj, t=(0, 0, 0), s=(1, 1, 1), ro=(0, 0, 0))
-                # dataHandleInSwitch.setInt(0)
-            dataHandleOutSwitch.setInt(switchVal)
+        switchVal = cmds.getAttr('{}.inSwitch'.format(self.name()))
+        # switchVal = dataHandleInSwitch.asInt()
 
-        # dataHandleOutSwitch.setInt(switchVal)
+        # print('switch val: {}'.format(switchVal))
+
+        effectorList = None
+        if switchVal == self.enumFK:
+            effectorList = self.genFkEff()
+        elif switchVal == self.enumIK:
+            effectorList = self.genIKEff()
+        if effectorList != None:
+            print(effectorList)
+            for objs in effectorList:
+                cmds.matchTransform(objs[0], objs[1])
+
+        if switchVal == self.enumReset:
+            effectorList = self.genResetEff()
+            if effectorList != None:
+                for obj in effectorList:
+                    cmds.xform(obj, t=(0, 0, 0), s=(1, 1, 1), ro=(0, 0, 0))
+
+        dataHandleOutSwitch.setInt(switchVal)
+
+    
+    def genFkEff(self):
+        fkList = []
+        nodeName = self.name()
+        for fk in self.fk_attributes:
+            driven = cmds.listConnections('{}{}'.format(nodeName, fk[0]))
+            driver = None
+            if driven != None:
+                for drv in fk[1]:
+                    driver = cmds.listConnections('{}{}'.format(nodeName, drv))
+                    if driver != None:
+                        break
+                if driver == None:
+                    cmds.warning('no object connected to {}', fk[0,1:])
+                    return None
+                fkList.append((driven, driver))
+        return fkList
+
+    def genIKEff(self):
+        ikList = []
+        nodeName = self.name()
+        for ik in self.ik_attributes:
+            driven = cmds.listConnections('{}{}'.format(nodeName, ik[0]))
+            driver = None
+            if driven != None:
+                for drv in ik[1]:
+                    driver = cmds.listConnections('{}{}'.format(nodeName, drv))
+                    if driver != None:
+                        break
+                if driver == None:
+                    cmds.warning('no object connected to {}', ik[0,1:])
+                    return None
+                ikList.append((driven, driver))
+        return ikList
+
+    def genResetEff(self):
+        resetList = []
+        nodeName = self.name()
+        for attr in self.reset_attributes:
+            driven = cmds.listConnections('{}{}'.format(nodeName, attr))
+            if driven == None:
+                if attr != self.reset_attributes[1] and attr != self.reset_attributes[2]:
+                    cmds.warning('no object connected to {}', attr[1:])
+                    return None
+            else:
+                resetList.append(driven)
+        return resetList
 
 def nodeCreator():
     return OpenMayaMPx.asMPxPtr(ikfkSwitch())
@@ -138,9 +166,9 @@ def nodeInitializer():
 
     # 2. create the attributes
     ikfkSwitch.inSwitch = mFnEnumAttr.create('inSwitch', 'inS')
-    mFnEnumAttr.addField('FK', 0)
-    mFnEnumAttr.addField('IK', 1)
-    mFnEnumAttr.addField('reset', 2)
+    mFnEnumAttr.addField('FK', ikfkSwitch.enumFK)
+    mFnEnumAttr.addField('IK', ikfkSwitch.enumIK)
+    mFnEnumAttr.addField('reset', ikfkSwitch.enumReset)
     mFnEnumAttr.default = 0
     mFnEnumAttr.setReadable(1)
     mFnEnumAttr.setWritable(1)
@@ -169,11 +197,6 @@ def nodeInitializer():
     ikfkSwitch.addAttribute(ikfkSwitch.inFKEnd)
     ikfkSwitch.inFKEndEff = createMessageAttribute(mFnMessageAttr, 'fkEndEffector', 'fkEEff')
     ikfkSwitch.addAttribute(ikfkSwitch.inFKEndEff)
-
-    ikfkSwitch.inFKPole = createMessageAttribute(mFnMessageAttr, 'fkPole', 'fkP')
-    ikfkSwitch.addAttribute(ikfkSwitch.inFKPole)
-    ikfkSwitch.inFKPoleEff = createMessageAttribute(mFnMessageAttr, 'fkPoleEffector', 'fkPEff')
-    ikfkSwitch.addAttribute(ikfkSwitch.inFKPoleEff)
 
     #creating fk blocks
     ikfkSwitch.inFKStartBlock = mFnCompoundAttr.create('fkStartBlock', 'fkStartBlck')
@@ -204,13 +227,6 @@ def nodeInitializer():
     mFnCompoundAttr.addChild(ikfkSwitch.inFKEndEff)
     ikfkSwitch.addAttribute(ikfkSwitch.inFKEndBlock)
 
-    ikfkSwitch.inFKPoleBlock = mFnCompoundAttr.create('fkPoleBlock', 'fkPoleBlck')
-    mFnCompoundAttr.setStorable(1)
-    mFnCompoundAttr.setKeyable(1)
-    mFnCompoundAttr.addChild(ikfkSwitch.inFKPole)
-    mFnCompoundAttr.addChild(ikfkSwitch.inFKPoleEff)
-    ikfkSwitch.addAttribute(ikfkSwitch.inFKPoleBlock)
-
     ikfkSwitch.inFKBlock = mFnCompoundAttr.create('fkBlock', 'fkBlck')
     mFnCompoundAttr.setStorable(1)
     mFnCompoundAttr.setKeyable(1)
@@ -218,7 +234,6 @@ def nodeInitializer():
     mFnCompoundAttr.addChild(ikfkSwitch.inFKMidABlock)
     mFnCompoundAttr.addChild(ikfkSwitch.inFKMidBBlock)
     mFnCompoundAttr.addChild(ikfkSwitch.inFKEndBlock)
-    mFnCompoundAttr.addChild(ikfkSwitch.inFKPoleBlock)
     ikfkSwitch.addAttribute(ikfkSwitch.inFKBlock)
 
     #creating ik plugs
@@ -226,16 +241,6 @@ def nodeInitializer():
     ikfkSwitch.addAttribute(ikfkSwitch.inIKStart)
     ikfkSwitch.inIKStartEff = createMessageAttribute(mFnMessageAttr, 'ikStartEffector', 'ikSEff')
     ikfkSwitch.addAttribute(ikfkSwitch.inIKStartEff)
-
-    ikfkSwitch.inIKMidA = createMessageAttribute(mFnMessageAttr, 'ikMidA', 'ikMA')
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidA)
-    ikfkSwitch.inIKMidAEff = createMessageAttribute(mFnMessageAttr, 'ikMidAEffector', 'ikMAEff')
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidAEff)
-
-    ikfkSwitch.inIKMidB = createMessageAttribute(mFnMessageAttr, 'ikMidB', 'ikMB')
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidB)
-    ikfkSwitch.inIKMidBEff = createMessageAttribute(mFnMessageAttr, 'ikMidBEffector', 'ikMBEff')
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidBEff)
 
     ikfkSwitch.inIKEnd = createMessageAttribute(mFnMessageAttr, 'ikEnd', 'ikE')
     ikfkSwitch.addAttribute(ikfkSwitch.inIKEnd)
@@ -255,20 +260,6 @@ def nodeInitializer():
     mFnCompoundAttr.addChild(ikfkSwitch.inIKStartEff)
     ikfkSwitch.addAttribute(ikfkSwitch.inIKStartBlock)
 
-    ikfkSwitch.inIKMidABlock = mFnCompoundAttr.create('ikMidABlock', 'ikMidABlck')
-    mFnCompoundAttr.setStorable(1)
-    mFnCompoundAttr.setKeyable(1)
-    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidA)
-    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidAEff)
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidABlock)
-
-    ikfkSwitch.inIKMidBBlock = mFnCompoundAttr.create('ikMidBBlock', 'ikMidBBlck')
-    mFnCompoundAttr.setStorable(1)
-    mFnCompoundAttr.setKeyable(1)
-    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidB)
-    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidBEff)
-    ikfkSwitch.addAttribute(ikfkSwitch.inIKMidBBlock)
-
     ikfkSwitch.inIKEndBlock = mFnCompoundAttr.create('ikEndBlock', 'ikEndBlck')
     mFnCompoundAttr.setStorable(1)
     mFnCompoundAttr.setKeyable(1)
@@ -284,20 +275,18 @@ def nodeInitializer():
     ikfkSwitch.addAttribute(ikfkSwitch.inIKPoleBlock)
 
     ikfkSwitch.inIKBlock = mFnCompoundAttr.create('ikBlock', 'ikBlck')
-    # mFnCompoundAttr.setStorable(1)
-    # mFnCompoundAttr.setKeyable(1)
+    mFnCompoundAttr.setStorable(1)
+    mFnCompoundAttr.setKeyable(1)
     mFnCompoundAttr.addChild(ikfkSwitch.inIKStartBlock)
-    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidABlock)
-    mFnCompoundAttr.addChild(ikfkSwitch.inIKMidBBlock)
     mFnCompoundAttr.addChild(ikfkSwitch.inIKEndBlock)
     mFnCompoundAttr.addChild(ikfkSwitch.inIKPoleBlock)
     ikfkSwitch.addAttribute(ikfkSwitch.inIKBlock)
 
     #final switch
     ikfkSwitch.outSwitch = mFnEnumAttr.create('outSwitch', 'outS')
-    mFnEnumAttr.addField('FK', 0)
-    mFnEnumAttr.addField('IK', 1)
-    mFnEnumAttr.addField('reset', 2)
+    mFnEnumAttr.addField('FK', ikfkSwitch.enumFK)
+    mFnEnumAttr.addField('IK', ikfkSwitch.enumIK)
+    mFnEnumAttr.addField('reset', ikfkSwitch.enumReset)
     mFnEnumAttr.setReadable(1)
     mFnEnumAttr.setWritable(0)
     mFnEnumAttr.setStorable(0)
