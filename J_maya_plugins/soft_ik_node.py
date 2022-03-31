@@ -1,7 +1,8 @@
 import sys
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx
-import maya.cmds as cmds
+import maya.cmds as cmdschainLength
+import math as math
 
 nodeName = 'softIKDistance'
 nodeId = OpenMaya.MTypeId(0x111112)
@@ -20,21 +21,27 @@ class softIKDistance(OpenMayaMPx.MPxNode):
 
     def compute(self, plug, dataBlock):
         if plug == softIKDistance.outSoftDistance:
-            mFnMessageAttr = OpenMaya.MFnMessageAttribute()
-            mFnCompoundAttr = OpenMaya.MFnCompoundAttribute()
+            dataHandleInCntrlDist = dataBlock.inputValue(ikfkSwitch.inControlDistance)
+            dataHandleInSoft = dataBlock.inputValue(ikfkSwitch.inSoft)
+            dataHandleInChainLen = dataBlock.inputValue(ikfkSwitch.inChainLength)
+
+            cntrlDist  = dataHandleInCntrlDist.asFloat()
+            soft = dataHandleInSoft.asFloat()
+            chainLen = dataHandleInChainLen.asFloat()
+            softDist = cntrlDist
+
+            if(cntrlDist > chainLen-soft):
+                if soft > 0:
+                    soft = chainLen - soft * math.pow(math.e, (-(cntrlDist-(chainLen-soft))/soft))
+                else:
+                    softDist = chainLen
+
+            dataHandleOutSwitch = dataBlock.outputValue(ikfkSwitch.outSoftDistance)
+            dataHandleOutSwitch.setFloat(softDist)
             
             dataBlock.setClean(plug)
         else:
             return OpenMaya.kUnknownParameter
-
-        
-    def switchChain(self, dataBlock):
-        dataHandleInSwitch = dataBlock.inputValue(ikfkSwitch.inSwitch)
-        dataHandleOutSwitch = dataBlock.outputValue(ikfkSwitch.outSwitch)
-
-        switchVal = cmds.getAttr('{}.inSwitch'.format(self.name()))
-
-        dataHandleOutSwitch.setInt(switchVal)
 
 def nodeCreator():
     return OpenMayaMPx.asMPxPtr(softIKDistance())
@@ -43,32 +50,32 @@ def nodeInitializer():
     mFnNumericAttribute = OpenMaya.MFnNumericAttribute()
 
     # 2. create the attributes
-    softIKDistance.inControlDistance = mFnEnumAttr.create('controlDistance', 'cntrlDist', 'kFloat', 0)
-    mFnEnumAttr.setReadable(1)
-    mFnEnumAttr.setWritable(1)
-    mFnEnumAttr.setStorable(1)
-    mFnEnumAttr.setKeyable(1)
+    softIKDistance.inControlDistance = mFnNumericAttribute.create('controlDistance', 'cntrlDist', 'kFloat', 0)
+    mFnNumericAttribute.setReadable(1)
+    mFnNumericAttribute.setWritable(1)
+    mFnNumericAttribute.setStorable(1)
+    mFnNumericAttribute.setKeyable(1)
     softIKDistance.addAttribute(softIKDistance.inControlDistance)
 
-    softIKDistance.inSoft = mFnEnumAttr.create('soft', 's', 'kFloat', 0)
-    mFnEnumAttr.setReadable(1)
-    mFnEnumAttr.setWritable(1)
-    mFnEnumAttr.setStorable(1)
-    mFnEnumAttr.setKeyable(1)
+    softIKDistance.inSoft = mFnNumericAttribute.create('soft', 's', 'kFloat', 0)
+    mFnNumericAttribute.setReadable(1)
+    mFnNumericAttribute.setWritable(1)
+    mFnNumericAttribute.setStorable(1)
+    mFnNumericAttribute.setKeyable(1)
     softIKDistance.addAttribute(softIKDistance.inSoft)
 
-    softIKDistance.inChainLength = mFnEnumAttr.create('chainLength', 'chainLen', 'kFloat', 0)
-    mFnEnumAttr.setReadable(1)
-    mFnEnumAttr.setWritable(1)
-    mFnEnumAttr.setStorable(1)
-    mFnEnumAttr.setKeyable(1)
+    softIKDistance.inChainLength = mFnNumericAttribute.create('chainLength', 'chainLen', 'kFloat', 0)
+    mFnNumericAttribute.setReadable(1)
+    mFnNumericAttribute.setWritable(1)
+    mFnNumericAttribute.setStorable(1)
+    mFnNumericAttribute.setKeyable(1)
     softIKDistance.addAttribute(softIKDistance.inChainLength)
 
-    softIKDistance.outSoftDistance = mFnEnumAttr.create('softDistance', 'softDist', 'kFloat', 0)
-    mFnEnumAttr.setReadable(1)
-    mFnEnumAttr.setWritable(0)
-    mFnEnumAttr.setStorable(0)
-    mFnEnumAttr.setKeyable(0)
+    softIKDistance.outSoftDistance = mFnNumericAttribute.create('softDistance', 'softDist', 'kFloat', 0)
+    mFnNumericAttribute.setReadable(1)
+    mFnNumericAttribute.setWritable(0)
+    mFnNumericAttribute.setStorable(0)
+    mFnNumericAttribute.setKeyable(0)
     softIKDistance.addAttribute(softIKDistance.outSoftDistance)
 
     # 4. designing circuitry
