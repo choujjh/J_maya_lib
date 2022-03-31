@@ -306,6 +306,6 @@ def initializePlugin(mobject):
 def uninitializePlugin(mobject):
     mplugin = OpenMayaMPx.MFnPlugin(mobject)
     try:
-        mplugin.deregisterNode(nodeName, nodeId)
+        mplugin.deregisterNode(nodeId)
     except:
         sys.stderr.write('Failed to unregister command %s\n' % nodeName)
