@@ -1,7 +1,6 @@
 import sys
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx
-import maya.cmds as cmdschainLength
 import math as math
 
 nodeName = 'softIKDistance'
@@ -21,9 +20,10 @@ class softIKDistance(OpenMayaMPx.MPxNode):
 
     def compute(self, plug, dataBlock):
         if plug == softIKDistance.outSoftDistance:
-            dataHandleInCntrlDist = dataBlock.inputValue(ikfkSwitch.inControlDistance)
-            dataHandleInSoft = dataBlock.inputValue(ikfkSwitch.inSoft)
-            dataHandleInChainLen = dataBlock.inputValue(ikfkSwitch.inChainLength)
+            dataHandleInCntrlDist = dataBlock.inputValue(softIKDistance.inControlDistance)
+            dataHandleInSoft = dataBlock.inputValue(softIKDistance.inSoft)
+            dataHandleInChainLen = dataBlock.inputValue(softIKDistance.inChainLength)
+            dataHandleOutSwitch = dataBlock.outputValue(softIKDistance.outSoftDistance)
 
             cntrlDist  = dataHandleInCntrlDist.asFloat()
             soft = dataHandleInSoft.asFloat()
@@ -31,12 +31,15 @@ class softIKDistance(OpenMayaMPx.MPxNode):
             softDist = cntrlDist
 
             if(cntrlDist > chainLen-soft):
+                # print('first cntrl')
                 if soft > 0:
-                    soft = chainLen - soft * math.pow(math.e, (-(cntrlDist-(chainLen-soft))/soft))
+                    # print('soft > 0')
+                    softDist = chainLen - soft * math.pow(math.e, (-(cntrlDist-(chainLen-soft))/soft))
                 else:
+                    # print('chain Len')
                     softDist = chainLen
 
-            dataHandleOutSwitch = dataBlock.outputValue(ikfkSwitch.outSoftDistance)
+            
             dataHandleOutSwitch.setFloat(softDist)
             
             dataBlock.setClean(plug)
@@ -50,28 +53,28 @@ def nodeInitializer():
     mFnNumericAttribute = OpenMaya.MFnNumericAttribute()
 
     # 2. create the attributes
-    softIKDistance.inControlDistance = mFnNumericAttribute.create('controlDistance', 'cntrlDist', 'kFloat', 0)
+    softIKDistance.inControlDistance = mFnNumericAttribute.create('controlDistance', 'cntrlDist', OpenMaya.MFnNumericData.kFloat, 0)
     mFnNumericAttribute.setReadable(1)
     mFnNumericAttribute.setWritable(1)
     mFnNumericAttribute.setStorable(1)
     mFnNumericAttribute.setKeyable(1)
     softIKDistance.addAttribute(softIKDistance.inControlDistance)
 
-    softIKDistance.inSoft = mFnNumericAttribute.create('soft', 's', 'kFloat', 0)
+    softIKDistance.inSoft = mFnNumericAttribute.create('soft', 's', OpenMaya.MFnNumericData.kFloat, 0)
     mFnNumericAttribute.setReadable(1)
     mFnNumericAttribute.setWritable(1)
     mFnNumericAttribute.setStorable(1)
     mFnNumericAttribute.setKeyable(1)
     softIKDistance.addAttribute(softIKDistance.inSoft)
 
-    softIKDistance.inChainLength = mFnNumericAttribute.create('chainLength', 'chainLen', 'kFloat', 0)
+    softIKDistance.inChainLength = mFnNumericAttribute.create('chainLength', 'chainLen', OpenMaya.MFnNumericData.kFloat, 0)
     mFnNumericAttribute.setReadable(1)
     mFnNumericAttribute.setWritable(1)
     mFnNumericAttribute.setStorable(1)
     mFnNumericAttribute.setKeyable(1)
     softIKDistance.addAttribute(softIKDistance.inChainLength)
 
-    softIKDistance.outSoftDistance = mFnNumericAttribute.create('softDistance', 'softDist', 'kFloat', 0)
+    softIKDistance.outSoftDistance = mFnNumericAttribute.create('softDistance', 'softDist', OpenMaya.MFnNumericData.kFloat, 0)
     mFnNumericAttribute.setReadable(1)
     mFnNumericAttribute.setWritable(0)
     mFnNumericAttribute.setStorable(0)
