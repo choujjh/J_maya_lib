@@ -58,6 +58,7 @@ def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name, color=None):
     ik_name = helpers.string_manip(ik_name, post='_ik')
     #ik joint chain
     handle, effector = cmds.ikHandle( n = helpers.string_manip(ik_name, post = 'handle'), sj = ik_start_jnt, ee = ik_end_jnt, sol = 'ikRPsolver')
+    cmds.setAttr('{}.visibility'.format(handle), False)
     effector = cmds.rename(effector, helpers.string_manip(ik_name, post = 'eff'))
     #create offset grps
     loc_start = cmds.spaceLocator(n = helpers.string_manip(ik_name, pre = 'anim', post = 'locOffset'))[0]
@@ -95,12 +96,14 @@ def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name, color=None):
     cmds.parent(object_lib.create_parent_grp(anim_start)[0], ik_grp)
 
     #get the pole value
-    cmds.parent(setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle), ik_grp)
+    pole_grp, ik_pole = cmds.parent(setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle), ik_grp)
     if color != None:
         object_lib.color_object(ik_grp, color, hierarchy=True)
 
     #lock len attr
     cmds.setAttr('{}.ik_len'.format(anim_end), lock=True)
+
+    return ik_grp, ik_pole
 def get_chain_len(start_jnt, end_jnt):
     long = cmds.ls(end_jnt, long=True)[0]
     index = long.find(helpers.split_obj_name(start_jnt)[1])
@@ -155,7 +158,7 @@ def setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
     #create annotate
     make_annotation(ik_mid_jnt, anim_obj, ik_name)
 
-    return pole_grp
+    return pole_grp, anim_obj
 def make_annotation(point_to, point_from, name):
     ann_point = cmds.spaceLocator(n = '{}_ann_point'.format(name))[0]
     cmds.setAttr('{}.visibility'.format(ann_point), False)
@@ -196,8 +199,8 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     object_lib.color_object(fk_start_jnt, fk_info.color, hierarchy=True)
 
     #setup
-    setup_ik_chain(ik_start_jnt, ik_end_jnt, name, color=ik_cntrl_color)
-    object_lib.create_fk_cntrl(fk_start_jnt, color=fk_cntrl_color)
+    ik_grp, ik_pole = setup_ik_chain(ik_start_jnt, ik_end_jnt, name, color=ik_cntrl_color)
+    fk_grp = object_lib.create_fk_cntrl(fk_start_jnt, color=fk_cntrl_color)
     object_lib.color_object(start_jnt, jnt_info.color, hierarchy=True)
 
     #connecting them together
@@ -223,5 +226,31 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     
     cmds.sets(node_editor_nodes, n=name + '_set')
 
+    #new stuff that need to refactor eventually
 
+    cmds.addAttr(switch_cntrl, ln = 'mode', at='enum', en = "FK:IK:reset:")
+    cmds.setAttr('{}.mode'.format(switch_cntrl), e=True, keyable=True)
+
+    cmds.connectAttr('{}.blend'.format(switch_cntrl), '{}.visibility'.format(fk_grp[0]))
+    reverse = cmds.createNode('reverse', n = helpers.string_manip(name, post = 'ik_reverse'))
+    cmds.connectAttr('{}.blend'.format(switch_cntrl), '{}.inputX'.format(reverse))
+    cmds.connectAttr('{}.outputX'.format(reverse), '{}.visibility'.format(ik_grp))
+
+    print(ik_pole)
+    fk_aim = cmds.spaceLocator(n='{}_fk_pole_aim'.format(name))[0]
+    fk_pointC = cmds.spaceLocator(n='{}_fk_pole_pointC'.format(name))[0]
+    cmds.parent(fk_pointC, fk_aim)
+    cmds.matchTransform(fk_aim, fk_start_jnt)
+    cmds.parent(fk_aim, fk_start_jnt)
+    
+    fk_mid_jnt = cmds.listRelatives(fk_start_jnt, c=True)[0]
+    cmds.aimConstraint(fk_end_jnt, fk_aim, aimVector=(1, 0, 0), upVector=(0, 0, 1), worldUpType="object", worldUpObject=fk_mid_jnt)
+    cmds.pointConstraint(fk_mid_jnt, fk_pointC, skip=['z','y'])
+    
+    
+    
+    fk_pole = cmds.spaceLocator(n='{}_fk_pole'.format(name))[0]
+    cmds.matchTransform(fk_pole, ik_pole)
+    cmds.parent(fk_pole, fk_pointC)
+    cmds.setAttr('{}.visibility'.format(fk_aim), False)
     

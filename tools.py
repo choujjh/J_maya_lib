@@ -18,10 +18,10 @@ class master_tool:
         self.scroll = frameworks.J_scrollLayout(self.win, self.width, 350)
         self.main_layout = frameworks.J_columnLayout(self.scroll, self.width, 350)
 
-        self.__info_frame__()
-        self.__utility_frame__()
-        self.__fk_frame__()
-        self.__set_color_frame__()
+        # self.__info_frame__()
+        # self.__utility_frame__()
+        # self.__fk_frame__()
+        # self.__set_color_frame__()
         self.__joint_setup_frame()
         # components.separator(self.main_layout)
 
@@ -146,6 +146,8 @@ class master_tool:
         components.button(self.js_frame_col, 'build joint chain', lambda x: self.__joint_setup_function__())
     def __joint_setup_function__(self):
         #change it so the function also has color on it
+        importlib.reload(object_lib)
+        importlib.reload(joint_lib)
         ik_info = joint_lib.joint_info(color=self.js_ik_jnt_color.get_value() , radius=self.js_ik_jnt_radius.get_value())
         fk_info = joint_lib.joint_info(color=self.js_fk_jnt_color.get_value(), radius=self.js_fk_jnt_radius.get_value())
         jnt_info = joint_lib.joint_info(color=self.js_jnt_color.get_value(), radius=self.js_jnt_radius.get_value())
