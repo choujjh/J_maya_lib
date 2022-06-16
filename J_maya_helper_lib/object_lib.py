@@ -52,7 +52,7 @@ def create_parent_grp(objects, pre='', post='_offset_grp01', custom=('','')):
         cmds.matchTransform(grp, obj)
         parents = cmds.listRelatives(obj, parent=True)
         if parents is not None:
-            cmds.parent(grp, parents[0])
+            grp=cmds.parent(grp, parents[0])[0]
         cmds.setAttr('{}.{}'.format(grp, 'scaleX'), 1)
         cmds.setAttr('{}.{}'.format(grp, 'scaleY'), 1)
         cmds.setAttr('{}.{}'.format(grp, 'scaleZ'), 1)
@@ -97,6 +97,7 @@ def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=Tru
     
     for o in objects:
         #initial object
+        print(o)
         circle_curve = cmds.circle(nr=(1, 0, 0), n=helpers.string_manip(o, pre=pre, post=post, custom=custom))[0]
         cmds.delete(circle_curve, constructionHistory = True)
         cmds.matchTransform(circle_curve, o)

@@ -18,10 +18,10 @@ class master_tool:
         self.scroll = frameworks.J_scrollLayout(self.win, self.width, 350)
         self.main_layout = frameworks.J_columnLayout(self.scroll, self.width, 350)
 
-        # self.__info_frame__()
-        # self.__utility_frame__()
-        # self.__fk_frame__()
-        # self.__set_color_frame__()
+        self.__info_frame__()
+        self.__utility_frame__()
+        self.__fk_frame__()
+        self.__set_color_frame__()
         self.__joint_setup_frame()
         # components.separator(self.main_layout)
 

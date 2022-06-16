@@ -5,7 +5,6 @@ import math as math
 
 nodeName = 'softIKDistance'
 nodeId = OpenMaya.MTypeId(0x111112)
-
 class softIKDistance(OpenMayaMPx.MPxNode):
 
     # fk blocks
@@ -96,6 +95,6 @@ def initializePlugin(mobject):
 def uninitializePlugin(mobject):
     mplugin = OpenMayaMPx.MFnPlugin(mobject)
     try:
-        mplugin.deregisterNode(nodeId)
+        return mplugin.deregisterNode(nodeId)
     except:
-        sys.stderr.write('Failed to unregister command %s\n' % nodeName)
+        sys.stderr.write('Failed to unregister command %s\n' % nodeName)    
