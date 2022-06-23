@@ -1,4 +1,4 @@
-from J_maya_lib.J_maya_helper_lib import object_lib, joint_lib
+from J_maya_lib.J_maya_utility_lib import object_lib, joint_lib
 from J_maya_lib.J_maya_UI_lib import components, frameworks
 import maya.cmds as cmds
 

@@ -1,14 +1,9 @@
 from J_maya_lib.J_maya_UI_lib import UI_helpers
-from J_maya_lib.J_maya_helper_lib import helpers
+from J_maya_lib.J_maya_utility_lib import utility_helpers
 
 import maya.cmds as cmds
 
-import importlib
 import math
-
-importlib.reload(UI_helpers)
-importlib.reload(helpers)
-
 
 class text_field:
     def __init__(self, parent, tx_label, tx_width=0, tf_width=0, long_name=False):
@@ -109,7 +104,7 @@ class select_text_field:
     
 class radio_collection:
     def __init__(self, parent, button_names, columns=None, verticle=True, select_index=0):
-        button_names = helpers.turn_to_list(button_names)
+        button_names = utility_helpers.turn_to_list(button_names)
         self.layout = '..'
         if verticle:
             self.layout = cmds.columnLayout(p=UI_helpers.get_UI_parent_string(parent))

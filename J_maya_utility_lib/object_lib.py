@@ -1,9 +1,8 @@
 import maya.cmds as cmds
-import importlib
-from J_maya_lib.J_maya_helper_lib import helpers
+from J_maya_lib.J_maya_utility_lib import utility_helpers
 
 
-class attr_info:
+class object_attr_info:
     def __init__(self, name, type, default, min=None, max=None):
         self.name = name
         self.type = type
@@ -11,15 +10,14 @@ class attr_info:
         self.min = min
         self.max = max
 
-importlib.reload(helpers)
 #rename objects that were returned
 def object_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_match_string=True):
     #check parameters
     try:
-        objects = helpers.turn_to_list(objects)
-        helpers.instance_exception('pre', pre, str)
-        helpers.instance_exception('post', post, str)
-        helpers.instance_exception('custom', custom, tuple)
+        objects = utility_helpers.turn_to_list(objects)
+        utility_helpers.instance_exception('pre', pre, str)
+        utility_helpers.instance_exception('post', post, str)
+        utility_helpers.instance_exception('custom', custom, tuple)
     except Exception as inst:
         cmds.error(inst)
     if len(custom) != 2:
@@ -29,8 +27,8 @@ def object_renamer(objects, pre = '', post = '', custom = ('', ''), check_contai
 
     #add _ for pre and post
     for obj in reversed(objects):
-        path_name, obj_name = helpers.split_obj_name(obj)
-        obj_new_name = helpers.string_manip(obj_name, pre=pre, post=post, custom=custom, check_contain_match_string=check_contain_match_string)
+        path_name, obj_name = utility_helpers.split_obj_name(obj)
+        obj_new_name = utility_helpers.string_manip(obj_name, pre=pre, post=post, custom=custom, check_contain_match_string=check_contain_match_string)
 
         if cmds.objExists(obj):
             # checks to see if the replacement name hasn't been taken yet
@@ -43,10 +41,10 @@ def object_renamer(objects, pre = '', post = '', custom = ('', ''), check_contai
 
 #creates a padding parent group
 def create_parent_grp(objects, pre='', post='_offset_grp01', custom=('','')):
-    objects = helpers.turn_to_list(objects)
+    objects = utility_helpers.turn_to_list(objects)
     grps = []
     for obj in objects:
-        grp_name = helpers.string_manip(obj, pre = pre, post = post, custom = custom)
+        grp_name = utility_helpers.string_manip(obj, pre = pre, post = post, custom = custom)
         grp = cmds.createNode('transform', n = grp_name)
         grps.append(grp)
         cmds.matchTransform(grp, obj)
@@ -60,8 +58,8 @@ def create_parent_grp(objects, pre='', post='_offset_grp01', custom=('','')):
     return grps
 
 def add_attributes(objects, attr, category = None):
-    objects = helpers.turn_to_list(objects)
-    attr = helpers.turn_to_list(attr)
+    objects = utility_helpers.turn_to_list(objects)
+    attr = utility_helpers.turn_to_list(attr)
 
     for obj in objects:
         #creating category
@@ -90,7 +88,7 @@ def add_attributes(objects, attr, category = None):
                 cmds.error('{} type not supported'.format(a.type))
 
 def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=True, constraint = True, color=None):
-    objects = helpers.turn_to_list(objects)
+    objects = utility_helpers.turn_to_list(objects)
     if hierarchy:
         objects = reverse_hierarchy(objects)
     circle_curve_grps = []
@@ -98,15 +96,15 @@ def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=Tru
     for o in objects:
         #initial object
         print(o)
-        circle_curve = cmds.circle(nr=(1, 0, 0), n=helpers.string_manip(o, pre=pre, post=post, custom=custom))[0]
+        circle_curve = cmds.circle(nr=(1, 0, 0), n=utility_helpers.string_manip(o, pre=pre, post=post, custom=custom))[0]
         cmds.delete(circle_curve, constructionHistory = True)
         cmds.matchTransform(circle_curve, o)
         off_grp = create_parent_grp(circle_curve)
         circle_curve_grps.append(off_grp[0])
         if constraint:
-            cmds.parentConstraint(helpers.split_obj_name(circle_curve)[1], o)
+            cmds.parentConstraint(utility_helpers.split_obj_name(circle_curve)[1], o)
         else:
-            cmds.pointConstraint(helpers.split_obj_name(circle_curve)[1], o)
+            cmds.pointConstraint(utility_helpers.split_obj_name(circle_curve)[1], o)
             cmds.connectAttr('{}.rotate'.format(circle_curve), '{}.rotate'.format(o))
         
         #get the hierarchy
@@ -123,19 +121,12 @@ def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=Tru
         color_object(circle_curve_grps, color, hierarchy=hierarchy)
     return circle_curve_grps
 
-def anim_circle(scale, rotateAngle=[0, 0, 0], center=[0, 0, 0], n='nurbsCircle', degree=3, sections=8):
-    cntrl = cmds.circle(r=scale, d=degree, s=sections, ch=False, n=n, c=center)[0]
-    cmds.xform(cntrl, ro=rotateAngle)
-    # cmds.setAttr(cntrl+'.rotate', rotateAngle)
-    cmds.makeIdentity(cntrl, apply=True, t=True, r=True, s=True, n=False, pn=True)
-    return cntrl
-
 #gets the highest parent of selected nodes (all selected children won't be returned)
 def reverse_hierarchy(objects):
     cmds.select(objects)
     cmds.select(hi=True)
     objects = cmds.ls(sl=True, long=True)
-    objects_short = set(helpers.convert_obj_names(objects))
+    objects_short = set(utility_helpers.convert_obj_names(objects))
     high_hierarchy = []
     for obj in objects:
         rel = cmds.listRelatives(obj, p=True)
@@ -151,7 +142,7 @@ def nonunique_obj_set():
     objects = cmds.ls(long=True)
     dupl_obj = []
     for obj in objects:
-        path_name, obj_name = helpers.split_obj_name(obj)
+        path_name, obj_name = utility_helpers.split_obj_name(obj)
         all_paths = cmds.ls(obj_name, allPaths=True)
         if len(all_paths) > 1:
             dupl_obj.append(obj)
@@ -162,8 +153,8 @@ def nonunique_obj_set():
 
 #list out all connections within a set of nodes
 def get_connections(objects):
-    objects = helpers.turn_to_list(objects)
-    short_objs = helpers.convert_obj_names(objects)
+    objects = utility_helpers.turn_to_list(objects)
+    short_objs = utility_helpers.convert_obj_names(objects)
     connections_with_conv = set()
 
     for obj in objects:
@@ -206,13 +197,13 @@ def connect_new_names(objects, pre='', post='', custom=('', '')):
     connections = get_connections(objects)
     print(connections)
     for con in connections:
-        driver = helpers.string_manip(con[0], pre, post, custom)
-        driven = helpers.string_manip(con[1], pre, post, custom)
+        driver = utility_helpers.string_manip(con[0], pre, post, custom)
+        driven = utility_helpers.string_manip(con[1], pre, post, custom)
         cmds.connectAttr(driver, driven, f=True)
 
 #duplicate and rename
 def dupl_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_match_string=True):
-    objects = reverse_hierarchy(helpers.turn_to_list(objects))
+    objects = reverse_hierarchy(utility_helpers.turn_to_list(objects))
     dupl_objects = []
     for obj in objects:
         cmds.select(obj)
@@ -220,7 +211,7 @@ def dupl_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_
 
         #parent duplicate
         dupl = cmds.ls(sl=True, long=True)[0]
-        dupl_name = helpers.string_manip(obj, pre=pre, post=post, custom=custom)
+        dupl_name = utility_helpers.string_manip(obj, pre=pre, post=post, custom=custom)
         cmds.rename(dupl, dupl_name)
         cmds.select(dupl_name)
         dupl_name = cmds.ls(sl=True, long=True)[0]
@@ -237,8 +228,8 @@ def dupl_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_
 
 #removes all node types and returns it
 def filter_node_types(objects, types, remove=True):
-    objects = helpers.turn_to_list(objects)
-    types = helpers.turn_to_list(types)
+    objects = utility_helpers.turn_to_list(objects)
+    types = utility_helpers.turn_to_list(types)
     ret_obj = []
     for obj in objects:
         if remove:
@@ -251,7 +242,7 @@ def filter_node_types(objects, types, remove=True):
 
 #duplicates nodes and retains connections
 def dupl_node_connections(objects, pre='', post='', custom=('', '')):
-    objects = helpers.turn_to_list(objects)
+    objects = utility_helpers.turn_to_list(objects)
     print(objects)
 
     dupl_renamer(filter_node_types(objects, 'unitConversion'), pre, post, custom)
