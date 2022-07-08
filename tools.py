@@ -1,13 +1,15 @@
-from J_maya_lib.J_maya_utility_lib import object_lib, joint_lib
+from J_maya_lib.J_maya_utility_lib import object_lib, joint_lib, utility_helpers, utility_data
 from J_maya_lib.J_maya_UI_lib import components, frameworks
 import maya.cmds as cmds
 
 import importlib
 
 importlib.reload(object_lib)
+importlib.reload(joint_lib)
+importlib.reload(utility_helpers)
+importlib.reload(utility_data)
 importlib.reload(components)
 importlib.reload(frameworks)
-importlib.reload(joint_lib)
 
 class master_tool:
     def __init__(self):
@@ -26,6 +28,9 @@ class master_tool:
         # components.separator(self.main_layout)
 
         self.win.J_show_window()
+
+        allowedAreas = ['right', 'left']
+        # cmds.dockControl( area='right', content=self.win.get_name(), allowedArea=allowedAreas, label='Master_Tool', mov=True )
     def __info_frame__(self):
         self.info_frame_info = frameworks.J_frameLayout(self.main_layout, self.width, 165, 'Info', collapsable=False)
         self.info_frame_info_col = frameworks.J_columnLayout(self.info_frame_info, self.width, 0)

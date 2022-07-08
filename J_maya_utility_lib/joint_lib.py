@@ -1,8 +1,10 @@
 import maya.cmds as cmds
-from J_maya_lib.J_maya_utility_lib import utility_helpers, object_lib, anim_controls, utility_data_classes
+from J_maya_lib.J_maya_utility_lib import utility_helpers, object_lib, anim_controls, utility_data
 '''
 TODO:
 stretchy IK
+twist extraction
+volume preservation
 '''
 
 class joint_info:
@@ -76,9 +78,9 @@ def setup_ik_chain(ik_start_jnt, ik_end_jnt, ik_name, color=None):
     #end
     anim_end = anim_controls.anim_circle(1, rotateAngle=[0,90,90], center=[0, -1, 0], n=utility_helpers.string_manip(ik_name, pre = 'anim', post = 'end'), degree=1, sections=3)
     dist = get_chain_len(ik_start_jnt, ik_end_jnt)
-    attr_list = [utility_data_classes.JObject_attr_info('stretch', 'bool', True),
-        utility_data_classes.JObject_attr_info('soft_perc', 'float', 1, min=0, max=1),
-        utility_data_classes.JObject_attr_info('ik_len', 'float', 0)]
+    attr_list = [utility_data.JObject_attr_info('stretch', 'bool', True),
+        utility_data.JObject_attr_info('soft_perc', 'float', 1, min=0, max=1),
+        utility_data.JObject_attr_info('ik_len', 'float', 0)]
     object_lib.add_attributes(anim_end, attr_list, 'IK_Attr')
     cmds.setAttr('{}.ik_len'.format(anim_end), dist)
     
@@ -107,8 +109,8 @@ def get_chain_len(start_jnt, end_jnt):
     long = long[index:].split('|')
     dist = 0
     for i in range(len(long) - 1):
-        firstPoint = utility_data_classes.JVector(cmds.xform(long[i], q=True, piv=True, ws=True)[:3])
-        secondPoint = utility_data_classes.JVector(cmds.xform(long[i+1], q=True, piv=True, ws=True)[:3])
+        firstPoint = utility_data.JVector(cmds.xform(long[i], q=True, piv=True, ws=True)[:3])
+        secondPoint = utility_data.JVector(cmds.xform(long[i+1], q=True, piv=True, ws=True)[:3])
         firstPoint = secondPoint-firstPoint
         mag = firstPoint.mag()
         dist = dist+mag
@@ -125,7 +127,7 @@ def setup_pole_vec(ik_start_jnt, ik_end_jnt, ik_name, handle):
     cmds.setAttr('{}.visibility'.format(loc_pole_vec), False)
     anim_obj = anim_controls.anim_circle(1, rotateAngle=[0,0,0], center=[0, 0.5, 0], n=utility_helpers.string_manip(ik_name, pre = 'anim', post = 'poleVec'), degree=1, sections=3)
 
-    current_pole_vec = utility_data_classes.JVector([cmds.getAttr('{}.poleVectorX'.format(handle)), cmds.getAttr('{}.poleVectorY'.format(handle)), cmds.getAttr('{}.poleVectorZ'.format(handle))])
+    current_pole_vec = utility_data.JVector([cmds.getAttr('{}.poleVectorX'.format(handle)), cmds.getAttr('{}.poleVectorY'.format(handle)), cmds.getAttr('{}.poleVectorZ'.format(handle))])
     #create a group above and constrain it to the start
     temp_grp = object_lib.create_parent_grp(loc_pole_vec, post='temp')[0]
     start_pointC = cmds.pointConstraint(ik_start_jnt, temp_grp)
@@ -201,10 +203,10 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     object_lib.color_object(start_jnt, jnt_info.color, hierarchy=True)
 
     #connecting them together
-    attr_list = [utility_data_classes.JObject_attr_info('blend', 'float', default=0, min=0, max=1)]
+    attr_list = [utility_data.JObject_attr_info('blend', 'float', default=0, min=0, max=1)]
     object_lib.add_attributes(switch_cntrl, attr_list, 'IK_to_FK')
 
-    attr_list = [utility_data_classes.JObject_attr_info('world_scale', 'float', default=1, min=0)]
+    attr_list = [utility_data.JObject_attr_info('world_scale', 'float', default=1, min=0)]
     object_lib.add_attributes(switch_cntrl, attr_list, None)
     
     long = cmds.ls(end_jnt, long=True)[0]
@@ -240,7 +242,7 @@ def setup_jnt_chain(start_jnt, end_jnt, name, switch_cntrl, ik_info, fk_info, jn
     cmds.matchTransform(fk_aim, fk_start_jnt)
     cmds.parent(fk_aim, fk_start_jnt)
     
-    fk_mid_jnt = cmds.listRelatives(fk_start_jnt, c=True)[0]
+    fk_mid_jnt = cmds.listRelatives(fk_start_jnt, c=True)[0] 
     cmds.aimConstraint(fk_end_jnt, fk_aim, aimVector=(1, 0, 0), upVector=(0, 0, 1), worldUpType="object", worldUpObject=fk_mid_jnt)
     cmds.pointConstraint(fk_mid_jnt, fk_pointC, skip=['z','y'])
     

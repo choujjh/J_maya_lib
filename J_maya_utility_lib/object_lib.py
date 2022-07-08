@@ -1,14 +1,9 @@
 import maya.cmds as cmds
-from J_maya_lib.J_maya_utility_lib import utility_helpers
+import pymel as pm
+from J_maya_lib.J_maya_utility_lib import utility_helpers, utility_data
 
 
-class object_attr_info:
-    def __init__(self, name, type, default, min=None, max=None):
-        self.name = name
-        self.type = type
-        self.default = default
-        self.min = min
-        self.max = max
+#flip names
 
 #rename objects that were returned
 def object_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_match_string=True):
@@ -28,7 +23,7 @@ def object_renamer(objects, pre = '', post = '', custom = ('', ''), check_contai
     #add _ for pre and post
     for obj in reversed(objects):
         path_name, obj_name = utility_helpers.split_obj_name(obj)
-        obj_new_name = utility_helpers.string_manip(obj_name, pre=pre, post=post, custom=custom, check_contain_match_string=check_contain_match_string)
+        obj_new_name = utility_helpers.string_manip(obj_name, utility_data.JRename_Info(pre=pre, post=post, custom=custom), check_contain_match_string=check_contain_match_string)
 
         if cmds.objExists(obj):
             # checks to see if the replacement name hasn't been taken yet
@@ -121,7 +116,7 @@ def create_fk_cntrl(objects, pre='anim',  custom=('',''), post='', hierarchy=Tru
         color_object(circle_curve_grps, color, hierarchy=hierarchy)
     return circle_curve_grps
 
-#gets the highest parent of selected nodes (all selected children won't be returned)
+#---------------------has pm equivalent
 def reverse_hierarchy(objects):
     cmds.select(objects)
     cmds.select(hi=True)
@@ -201,7 +196,7 @@ def connect_new_names(objects, pre='', post='', custom=('', '')):
         driven = utility_helpers.string_manip(con[1], pre, post, custom)
         cmds.connectAttr(driver, driven, f=True)
 
-#duplicate and rename
+#---------------------has pm equivalent
 def dupl_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_match_string=True):
     objects = reverse_hierarchy(utility_helpers.turn_to_list(objects))
     dupl_objects = []
@@ -226,7 +221,7 @@ def dupl_renamer(objects, pre = '', post = '', custom = ('', ''), check_contain_
         object_renamer(dupl_child, pre, post, custom, check_contain_match_string)
     return dupl_objects
 
-#removes all node types and returns it
+#---------------------has pm equivalent
 def filter_node_types(objects, types, remove=True):
     objects = utility_helpers.turn_to_list(objects)
     types = utility_helpers.turn_to_list(types)
@@ -247,8 +242,8 @@ def dupl_node_connections(objects, pre='', post='', custom=('', '')):
 
     dupl_renamer(filter_node_types(objects, 'unitConversion'), pre, post, custom)
     connect_new_names(objects, pre, post, custom)
-
-#note only works with transform's shapes and joints
+ 
+#---------------------has pm equivalent
 def color_object(objects, color, hierarchy=False, index=True, reset=False):
     cmds.select(objects, hi=hierarchy)
     objects = cmds.ls(sl=True, long=True)
@@ -261,6 +256,7 @@ def color_object(objects, color, hierarchy=False, index=True, reset=False):
         if shapes != None:
             for s in shapes:
                 set_color_attr(s, color, index=index, reset=reset)
+#---------------------has pm equivalent
 def set_color_attr(object, color, index=True, reset=False):
     cmds.setAttr('{}.overrideEnabled'.format(object), True)
     if index:
@@ -270,3 +266,60 @@ def set_color_attr(object, color, index=True, reset=False):
         cmds.setAttr('{}.overrideEnabled'.format(object), False)
         cmds.setAttr('{}.overrideRGBColors'.format(object), 0)
         cmds.setAttr('{}.overrideColor'.format(object), 0)
+
+def filter_out_children_pm(objects):
+    objects = utility_helpers.turn_to_list(objects)
+    parent_objects = []
+    # getting just the parent objects
+    for obj in objects:
+        if set(pm.core.listRelatives(obj, ap=True)).intersection(set(objects)) == set():
+            parent_objects.append(obj)
+    return parent_objects
+
+def dupl_renamer_pm(objects, renameInfo:utility_data.JRename_Info):
+    objects = utility_helpers.turn_to_list(objects)
+    parent_objects = filter_out_children_pm(objects)
+    dup_objects = pm.core.duplicate(parent_objects)
+    for old_obj, new_obj in zip(parent_objects, dup_objects):
+        new_obj.rename(utility_helpers.string_manip(old_obj, renameInfo))
+    hierarchy = utility_helpers.obj_hierarchy(dup_objects, includeInitialObjects=False)
+    for obj in hierarchy:
+        obj.rename(utility_helpers.string_manip(obj.shortName(), renameInfo))
+
+######----------------------------------still need to fix----------------------------------------------------
+def dupl_node_connections_pm(objects, renameInfo:utility_data.JRename_Info):
+    objects = utility_helpers.turn_to_list(objects)
+
+    # dupl_renamer_pm(filter_node_types(objects, 'unitConversion'), renameInfo)
+    # connect_new_names_pm(objects, renameInfo)
+
+def filter_node_types_pm(objects, types, remove:bool = True):
+    objects = utility_helpers.turn_to_list(objects)
+    types = utility_helpers.turn_to_list(types)
+    if remove:
+        return [x for x in objects if pm.core.general.nodeType(x) not in types]
+    return [x for x in objects if pm.core.general.nodeType(x) in types]  
+
+def color_object_pm(objects, color, hierarchy:bool = False, index:bool = True, reset:bool = False):
+    if hierarchy: 
+        objects = utility_helpers.obj_hierarchy(objects)
+        objects = filter_node_types_pm(objects, ['transform', 'joint'], remove=False)
+
+    #take out transform if we can
+    for obj in objects:
+        shapes = pm.core.general.listRelatives(obj, s=True)
+        if pm.core.general.nodeType(obj) == 'joint':
+            set_color_attr_pm(obj, color, index=index, reset=reset)
+        if shapes != None:
+            for s in shapes:
+                set_color_attr_pm(s, color, index=index, reset=reset)
+
+def set_color_attr_pm(object, color, index:bool = True, reset:bool = False):
+        object.overrideEnabled.set(True)
+        if index:
+            object.overrideRGBColors.set(0)
+            object.overrideColor.set(color)
+        if reset:
+            object.overrideEnabled.set(False)
+            object.overrideRGBColors.set(0)
+            object.overrideColor.set(0)

@@ -1,11 +1,9 @@
-import maya.cmds as cmds
+import pymel as pm
+from J_maya_lib.J_maya_utility_lib import utility_data
 
 def instance_exception(var_name, var, type):
     if not isinstance(var, type):
         raise Exception('{} {} needs to be a {}'.format(var_name, var, str(type)))
-
-# def comtains_nonunique_exception(objects):
-
 
 #string manipulation stuff
 def split_obj_name(obj):
@@ -13,35 +11,32 @@ def split_obj_name(obj):
     obj_name = obj[obj.rfind('|') + 1:]
     return path_name, obj_name
 
-def string_manip(obj_name, pre = '', post = '', custom = ('', ''), check_contain_match_string=True):
-    if custom[0].find(custom[1]) != -1:
+def string_manip(object, renameInfo:utility_data.JRename_Info , check_contain_match_string=True):
+    if renameInfo.custom[0].find(renameInfo.custom[1]) != -1:
         check_contain_match_string = False
-    obj_name = split_obj_name(obj_name)[1]
-    if len(pre) > 0 and not pre.endswith('_'):
-        pre = '{}_'.format(pre)
-    if len(post) > 0 and not post.startswith('_'):
-        post = '_{}'.format(post)
+    obj_name = object
+    if not isinstance(obj_name, str):
+        obj_name = object.nodeName()
+    if len(renameInfo.pre) > 0 and not renameInfo.pre.endswith('_'):
+        renameInfo.pre = '{}_'.format(renameInfo.pre)
+    if len(renameInfo.post) > 0 and not renameInfo.post.startswith('_'):
+        renameInfo.post = '_{}'.format(renameInfo.post)
     if check_contain_match_string:
-        if obj_name.find(custom[1]) == -1:
-            obj_name = obj_name.replace(custom[0], custom[1])
-    else:
-        obj_name = obj_name.replace(custom[0], custom[1])
-    obj_new_name = pre + obj_name + post
-    return obj_new_name
+        obj_name = obj_name.replace(renameInfo.custom[0], renameInfo.custom[1])
+    return renameInfo.pre + obj_name + renameInfo.post
 
 def turn_to_list(current_list):
     if not isinstance(current_list, list):
         return [current_list]
     return current_list
 
-def convert_obj_names(objects, long=False):
-    objects = turn_to_list(objects)
-    if not long:
-        return [split_obj_name(x)[1] for x in objects]
-    cmds.select(objects)
-    return cmds.ls(sl=True, long=True)
-
-def select_obj_hierarchy(object):
-    cmds.select(object)
-    cmds.select(hi=True)
+def obj_hierarchy(objects, includeInitialObjects:bool=True):
+    hierarchy = pm.core.general.listRelatives(objects, ad=True)
+    object_copy = objects.copy()
+    if includeInitialObjects==True:
+        object_copy=[]
+    if hierarchy == None:
+        return object_copy
+    object_copy.extend(hierarchy[::-1])
+    return object_copy
 
